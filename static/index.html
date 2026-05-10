@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IPN — Offre en hébergement 2025</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Source+Sans+3:wght@300;400;600&display=swap');
+
+/* ── Couleurs IPN (projet Python de référence) ─────────────────── */
+:root {
+  /* EPCI */
+  --ccspn: #4f81bd;
+  --ccvv:  #9bbb59;
+  --ccpf:  #c0504d;
+  /* Palette IPN */
+  --ipn-gris:   #95a6b1;
+  --ipn-bleu:   #8bcad9;
+  --ipn-vert:   #a0ca9a;
+  --ipn-rose:   #e4a9cd;
+  --ipn-corail: #f3946f;
+  /* UI */
+  --bg:    #F7F2EA;
+  --panel: #FEFAF3;
+  --bd:    #D4C4A0;
+  --td:    #2A1E10;
+  --tm:    #5C4A30;
+  --tl:    #8B7355;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--td);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+header{background:var(--td);color:#F7F2EA;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:3px solid var(--ipn-corail)}
+header h1{font-family:'Playfair Display',serif;font-size:16px;font-weight:600}
+header .sub{font-size:11px;color:#C4B896;margin-top:1px}
+.badges{display:flex;gap:6px}
+.badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:12px}
+.b-ccspn{background:var(--ccspn);color:#fff}
+.b-ccvv {background:var(--ccvv);color:#fff}
+.b-ccpf {background:var(--ccpf);color:#fff}
+
+.main{display:flex;flex:1;overflow:hidden}
+
+/* ── Sidebar ────────────────────────────────────────────────────── */
+.sidebar{width:265px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow-y:auto}
+.sec{padding:12px 13px;border-bottom:1px solid var(--bd)}
+.sec h3{font-family:'Playfair Display',serif;font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--tl);margin-bottom:9px}
+
+.mbtn{display:block;width:100%;text-align:left;padding:7px 10px;margin-bottom:3px;border:1px solid var(--bd);border-radius:5px;background:transparent;cursor:pointer;font-size:12.5px;color:var(--tm);transition:all .15s;font-family:inherit}
+.mbtn:hover{border-color:var(--ipn-corail);background:#FFF8F0;color:var(--td)}
+.mbtn.active{border-color:var(--ipn-corail);background:linear-gradient(135deg,#FFF8F0,#FFE8D0);color:var(--td);font-weight:600;box-shadow:0 1px 4px rgba(243,148,111,.25)}
+.mbtn .ico{margin-right:6px}
+
+.stat-row{display:flex;align-items:center;padding:5px 0;border-bottom:1px solid #EDE5D5;font-size:11.5px}
+.stat-row:last-child{border-bottom:none}
+.stat-rank{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-right:7px}
+.stat-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tm)}
+.stat-val{font-weight:700;font-size:12px;color:var(--td);margin-left:5px}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-left:4px}
+
+.chips{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}
+.chip{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600}
+
+.tog-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.tog-lbl{font-size:12px;color:var(--tm)}
+.tog{position:relative;width:34px;height:18px}
+.tog input{display:none}
+.tog-sl{position:absolute;inset:0;background:#C9B99A;border-radius:9px;cursor:pointer;transition:.2s}
+.tog-sl::before{content:'';position:absolute;width:12px;height:12px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.2s}
+.tog input:checked+.tog-sl{background:var(--ipn-corail)}
+.tog input:checked+.tog-sl::before{transform:translateX(16px)}
+
+/* ── Map ────────────────────────────────────────────────────────── */
+#map{flex:1}
+
+/* ── Tooltip Leaflet ─────────────────────────────────────────────── */
+.leaflet-tooltip{background:#2A1E10!important;border:none!important;border-radius:8px!important;padding:0!important;box-shadow:0 4px 20px rgba(0,0,0,.35)!important}
+.leaflet-tooltip::before{display:none!important}
+.tt{padding:11px 13px;font-family:'Source Sans 3',sans-serif;font-size:11.5px;min-width:210px;color:#F7F2EA}
+.tt h4{font-family:'Playfair Display',serif;font-size:14px;margin-bottom:4px}
+.tt-tag{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:10px;margin-bottom:7px;display:inline-block}
+.tt-row{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:10.5px}
+.tt-row:last-child{border-bottom:none}
+.tt-k{color:#C4B896}.tt-v{font-weight:700}
+.tt-section{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#8B7355;margin:5px 0 2px}
+
+.map-credit{position:absolute;bottom:6px;left:6px;z-index:1000;font-size:9.5px;color:var(--tl);background:rgba(254,250,243,.9);padding:3px 7px;border-radius:4px;pointer-events:none}
+
+#loading{position:absolute;inset:0;background:rgba(247,242,234,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999}
+.spinner{width:40px;height:40px;border:4px solid var(--bd);border-top-color:var(--ipn-corail);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading p{color:var(--tm);font-size:13px}
+#error{display:none;padding:20px;color:#c0504d;text-align:center;font-size:13px}
+
+.sz-box{display:flex;align-items:flex-end;gap:10px;margin-top:4px}
+.sz-circ{border-radius:50%;background:rgba(79,129,189,.3);border:2px solid rgba(79,129,189,.7);flex-shrink:0}
+.sz-lbl{font-size:9.5px;color:var(--tl);text-align:center;margin-top:2px}
+
+/* ── Onglets ─────────────────────────────────────────────────────── */
+.tabs{display:flex;background:var(--panel);border-bottom:2px solid var(--bd);flex-shrink:0}
+.tab-btn{padding:9px 22px;border:none;background:transparent;cursor:pointer;font-family:'Source Sans 3',sans-serif;font-size:13px;color:var(--tm);border-bottom:2px solid transparent;margin-bottom:-2px;transition:.15s}
+.tab-btn:hover{color:var(--td)}
+.tab-btn.active{color:var(--td);border-bottom-color:var(--ipn-corail);font-weight:600}
+
+/* ── Statistiques ────────────────────────────────────────────────── */
+#stats-view{flex:1;overflow-y:auto;padding:24px 32px;background:var(--bg)}
+.st{width:100%;border-collapse:collapse;font-size:12px;background:var(--panel);border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.st th{padding:10px 14px;text-align:right;font-weight:700;font-size:10.5px;border-bottom:2px solid var(--bd);color:var(--tl);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.st th:first-child{text-align:left;width:220px}
+.st th.bar-th{text-align:center;width:130px}
+.st td{padding:8px 14px;border-bottom:1px solid #EDE5D5;vertical-align:middle;text-align:right}
+.st td:first-child{text-align:left}
+.st tr:last-child td{border-bottom:none}
+.st tr:hover td{background:#FFF8F0}
+.st .v{font-weight:700;font-size:13px;color:var(--td)}
+.st .p{font-size:10.5px;color:var(--tl)}
+.st .n{font-size:10px;color:#A09080}
+.st .sep td{background:var(--bg);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--tl);padding:12px 14px 5px;border-bottom:1px solid var(--bd)}
+.st .hi td{background:#FFF5EC}
+.st .hi .v{font-size:14px}
+.stk{height:10px;border-radius:5px;overflow:hidden;display:flex;min-width:100px}
+.stk div{height:100%}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>🗺 Offre en Hébergement — Intense Périgord Noir</h1>
+    <div class="sub" id="annee">Données 2025 · Source : observatoire départemental de l'économie touristique · 56 communes · Dordogne (24)</div>
+  </div>
+  <div class="badges">
+    <span class="badge b-ccspn">Sarlat-Périgord Noir</span>
+    <span class="badge b-ccvv">Vallée de l'Homme</span>
+    <span class="badge b-ccpf">Pays de Fénelon</span>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" id="tab-carto" onclick="switchTab('carto')">🗺 Cartographie</button>
+  <button class="tab-btn"        id="tab-stats" onclick="switchTab('stats')">📊 Statistiques</button>
+</div>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="sec">
+      <h3>Indicateur</h3>
+      <button class="mbtn active" data-m="total_marchands"    onclick="setM(this)"><span class="ico">🏨</span>Total lits marchands</button>
+      <button class="mbtn"        data-m="total_classes"      onclick="setM(this)"><span class="ico">⭐</span>Total lits classés</button>
+      <button class="mbtn"        data-m="lits_camping"       onclick="setM(this)"><span class="ico">⛺</span>Campings &amp; PRL &amp; VV</button>
+      <button class="mbtn"        data-m="lits_plein_air"     onclick="setM(this)"><span class="ico">🌲</span>Plein air (camping+PRL+VV)</button>
+      <button class="mbtn"        data-m="lits_hotels"        onclick="setM(this)"><span class="ico">🏩</span>Hôtels</button>
+      <button class="mbtn"        data-m="lits_rt"            onclick="setM(this)"><span class="ico">🏢</span>Résidences de tourisme</button>
+      <button class="mbtn"        data-m="lits_prl"           onclick="setM(this)"><span class="ico">🚐</span>PRL</button>
+      <button class="mbtn"        data-m="lits_vv"            onclick="setM(this)"><span class="ico">🏘</span>Villages vacances</button>
+      <button class="mbtn"        data-m="lits_meublés"       onclick="setM(this)"><span class="ico">🏡</span>Meublés de tourisme</button>
+      <button class="mbtn"        data-m="lits_gdf"           onclick="setM(this)"><span class="ico">🌿</span>Gîtes GDF</button>
+      <button class="mbtn"        data-m="lits_ch"            onclick="setM(this)"><span class="ico">☕</span>Chambres d'hôtes</button>
+      <button class="mbtn"        data-m="lits_cle"           onclick="setM(this)"><span class="ico">🔑</span>Clévacances</button>
+      <button class="mbtn"        data-m="lits_labellisé"     onclick="setM(this)"><span class="ico">🏅</span>Héb. labellisé</button>
+      <button class="mbtn"        data-m="lits_res2aires"     onclick="setM(this)"><span class="ico">🏖</span>Résidences secondaires</button>
+    </div>
+    <div class="sec">
+      <h3>Affichage</h3>
+      <div class="tog-row">
+        <span class="tog-lbl">Choroplèthe</span>
+        <label class="tog"><input type="checkbox" id="togChoro" checked onchange="rebuild()"><div class="tog-sl"></div></label>
+      </div>
+      <div class="tog-row">
+        <span class="tog-lbl">Cercles proportionnels</span>
+        <label class="tog"><input type="checkbox" id="togCircles" checked onchange="rebuild()"><div class="tog-sl"></div></label>
+      </div>
+      <div class="tog-row">
+        <span class="tog-lbl">Limites EPCI</span>
+        <label class="tog"><input type="checkbox" id="togEpci" checked onchange="rebuild()"><div class="tog-sl"></div></label>
+      </div>
+      <div class="tog-row">
+        <span class="tog-lbl">Limites communales</span>
+        <label class="tog"><input type="checkbox" id="togCommunes" onchange="rebuild()"><div class="tog-sl"></div></label>
+      </div>
+      <div class="tog-row" style="display:none">
+        <span class="tog-lbl">Noms des communes</span>
+        <label class="tog"><input type="checkbox" id="togLabels" onchange="rebuild()"><div class="tog-sl"></div></label>
+      </div>
+    </div>
+    <div class="sec">
+      <h3>Légende</h3>
+      <div id="legend"></div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="sec" style="flex:1">
+      <h3>Top 8 communes</h3>
+      <div id="top"></div>
+    </div>
+  </div>
+
+  <div style="flex:1;position:relative;display:flex;flex-direction:column">
+    <div id="loading"><div class="spinner"></div><p>Chargement depuis l'API…</p></div>
+    <div id="error"></div>
+    <div id="map"></div>
+    <div class="map-credit">Fond © OpenStreetMap/CARTO · Contours © geo.api.gouv.fr · Données IPN</div>
+  </div>
+</div>
+
+<div id="stats-view" style="display:none">
+  <div style="max-width:1000px;margin:0 auto">
+    <div id="stats-content" style="color:var(--tm);font-size:13px">Chargement…</div>
+  </div>
+</div>
+
+<script>
+// ── Configuration ─────────────────────────────────────────────────────
+const API = '';  // même origine que le serveur FastAPI
+
+const EC = { CCSPN:'#4f81bd', CCVV:'#9bbb59', CCPF:'#c0504d' };
+const EN = { CCSPN:'Sarlat-Périgord Noir', CCVV:"Vallée de l'Homme", CCPF:'Pays de Fénelon' };
+
+// Palettes choroplèthes par indicateur (couleurs IPN)
+const PALETTES = {
+  total_marchands:  ['#F7F2EA','#e4a9cd','#c0504d','#7A0010'],  // rose→rouge
+  total_classes:    ['#F7F2EA','#8bcad9','#4f81bd','#1A3D7A'],  // bleu
+  lits_camping:     ['#F7F2EA','#a0ca9a','#9bbb59','#2D5A00'],  // vert
+  lits_plein_air:   ['#F7F2EA','#a0ca9a','#9bbb59','#2D5A00'],
+  lits_hotels:      ['#F7F2EA','#f3946f','#c0504d','#600000'],  // corail→rouge
+  lits_rt:          ['#F7F2EA','#e4a9cd','#9b50a0','#420050'],  // rose→violet
+  lits_prl:         ['#F7F2EA','#a0ca9a','#4f814f','#1A3A1A'],
+  lits_vv:          ['#F7F2EA','#8bcad9','#2D7A8B','#0A3A4A'],
+  lits_meublés:     ['#F7F2EA','#f3946f','#C86030','#703010'],  // corail
+  lits_gdf:         ['#F7F2EA','#a0ca9a','#5A9B5A','#1A4A1A'],
+  lits_ch:          ['#F7F2EA','#e4a9cd','#C070A0','#703050'],
+  lits_cle:         ['#F7F2EA','#95a6b1','#4f6f7f','#1A3040'],  // gris-bleu
+  lits_labellisé:   ['#F7F2EA','#8bcad9','#4f81bd','#1A3D7A'],
+  lits_res2aires:   ['#F7F2EA','#f3946f','#8B5020','#3A1808'],
+};
+
+const MR = 30, NR = 4;
+
+let metric = 'total_marchands';
+let allData = [];
+let geoLayer = null, circleLayer = null, labelLayer = null, epciLayer = null, communeLayer = null;
+let showChoro = true, showCircles = true, showLabels = false, showEpci = true, showCommunes = false;
+let byINSEE = {};
+
+const map = L.map('map', { center:[44.95,1.10], zoom:11 });
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+  attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:18
+}).addTo(map);
+
+function fmt(n){ return (n||0).toLocaleString('fr-FR'); }
+function gv(d){ return d[metric]||0; }
+
+// ── Tooltip ────────────────────────────────────────────────────────────
+function ttRow(ico, label, nb, lits) {
+  if (!nb && !lits) return '';
+  const v = [nb ? `${fmt(nb)} étab.` : '', lits ? `${fmt(lits)} lits` : ''].filter(Boolean).join(' · ');
+  return `<div class="tt-row"><span class="tt-k">${ico} ${label}</span><span class="tt-v">${v}</span></div>`;
+}
+
+function ttH(d){
+  const ec = EC[d.epci]||'#888';
+  return `<div class="tt">
+    <h4>${d.commune||d.nom}</h4>
+    <span class="tt-tag" style="background:${ec}">${EN[d.epci]||d.epci}</span>
+    <div class="tt-section">Total</div>
+    <div class="tt-row"><span class="tt-k">Lits marchands</span><span class="tt-v">${fmt(d.total_marchands)}</span></div>
+    <div class="tt-row"><span class="tt-k">Lits classés</span><span class="tt-v">${fmt(d.total_classes)}</span></div>
+    <div class="tt-section">Détail</div>
+    ${ttRow('🏩','Hôtels',          d.nb_hotels,   d.lits_hotels)}
+    ${ttRow('🏢','Rés. tourisme',   d.nb_rt,       d.lits_rt)}
+    ${ttRow('⛺','Campings',        d.nb_camping,  d.lits_camping)}
+    ${ttRow('🚐','PRL',             d.nb_prl,      d.lits_prl)}
+    ${ttRow('🏘','Villages vac.',   d.nb_vv,       d.lits_vv)}
+    ${ttRow('🏡','Meublés',         d.nb_meublés,  d.lits_meublés)}
+    ${ttRow('🌿','Gîtes GDF',       d.nb_gdf,      d.lits_gdf)}
+    ${ttRow('☕','Chambres d\'hôtes',d.nb_ch,       d.lits_ch)}
+    ${ttRow('🔑','Clévacances',     d.nb_cle,      d.lits_cle)}
+    ${ttRow('🏕','Gîte étape/grp', d.nb_etape_grp,d.lits_etape_grp)}
+    ${ttRow('🏖','Rés. secondaires',d.nb_res2aires,d.lits_res2aires)}
+  </div>`;
+}
+
+// ── Couleur choroplèthe ────────────────────────────────────────────────
+function choroColor(val, maxVal) {
+  if (!val) return '#F0EDE6';
+  const pal = PALETTES[metric] || PALETTES.total_marchands;
+  const t = Math.min(val / maxVal, 1);
+  const i = Math.floor(t * (pal.length - 1));
+  return pal[Math.min(i, pal.length - 1)];
+}
+
+// ── Build / rebuild carte ─────────────────────────────────────────────
+function rebuild() {
+  showChoro    = document.getElementById('togChoro').checked;
+  showCircles  = document.getElementById('togCircles').checked;
+  showLabels   = document.getElementById('togLabels').checked;
+  showEpci     = document.getElementById('togEpci').checked;
+  showCommunes = document.getElementById('togCommunes').checked;
+
+  if (geoLayer)     { map.removeLayer(geoLayer);     geoLayer     = null; }
+  if (circleLayer)  { map.removeLayer(circleLayer);  circleLayer  = null; }
+  if (labelLayer)   { map.removeLayer(labelLayer);   labelLayer   = null; }
+  if (epciLayer)    { map.removeLayer(epciLayer);    epciLayer    = null; }
+  if (communeLayer) { map.removeLayer(communeLayer); communeLayer = null; }
+
+  const mx = Math.max(...allData.map(gv), 1);
+
+  // ── Choroplèthe ──────────────────────────────────────────────────
+  if (showChoro && window._geojson) {
+    geoLayer = L.geoJSON(window._geojson, {
+      style(f) {
+        const d = byINSEE[f.properties.code];
+        const val = d ? gv(d) : 0;
+        return {
+          fillColor: choroColor(val, mx),
+          weight: 1.5, color: '#5C4A30',
+          fillOpacity: d ? 0.78 : 0.15,
+        };
+      },
+      onEachFeature(f, layer) {
+        const d = byINSEE[f.properties.code];
+        if (!d) return;
+        layer.bindTooltip(ttH(d), { permanent:false, sticky:true, direction:'top', opacity:1 });
+        layer.on('mouseover', () => layer.setStyle({ weight:2.5, color:'#2A1E10', fillOpacity:.95 }));
+        layer.on('mouseout',  () => geoLayer.resetStyle(layer));
+      }
+    }).addTo(map);
+  }
+
+  // ── Limites EPCI (dissolution turf.js) ───────────────────────────
+  if (showEpci && window._geojson) {
+    try {
+      const dissolved = turf.dissolve(window._geojson, { propertyName: 'epci' });
+      epciLayer = L.geoJSON(dissolved, {
+        style(f) {
+          const col = EC[f.properties.epci] || '#888';
+          return { color: col, weight: 3.5, fillOpacity: 0, opacity: 1 };
+        },
+        interactive: false,
+      }).addTo(map);
+    } catch(e) {
+      console.warn('Dissolution EPCI échouée :', e);
+    }
+  }
+
+  // ── Limites communales en pointillés ─────────────────────────────
+  if (showCommunes && window._geojson) {
+    communeLayer = L.geoJSON(window._geojson, {
+      style() {
+        return { fill: false, color: '#5C4A30', weight: 1, dashArray: '4 4', opacity: 0.7 };
+      },
+      interactive: false,
+    }).addTo(map);
+  }
+
+  // ── Cercles proportionnels ────────────────────────────────────────
+  if (showCircles) {
+    const sorted = [...allData].sort((a,b) => gv(b)-gv(a));
+    const markers = [];
+    sorted.forEach(d => {
+      const v = gv(d);
+      if (!v) return;
+      const r = NR + Math.sqrt(v/mx) * (MR - NR);
+      const col = EC[d.epci] || '#888';
+      const cm = L.circleMarker([d._lat, d._lng], {
+        radius: r,
+        fillColor: col,
+        fillOpacity: showChoro ? 0.55 : 0.72,
+        color: col,
+        weight: showChoro ? 1.5 : 2,
+        opacity: 0.95,
+      });
+      cm.bindTooltip(ttH(d), { permanent:false, sticky:true, direction:'top', opacity:1 });
+      if (showLabels) {
+        cm.bindTooltip(
+          `<span style="font-size:9.5px;font-family:'Source Sans 3',sans-serif;font-weight:600;color:#2A1E10;background:rgba(254,250,243,.9);padding:1px 5px;border-radius:3px">${d.commune}</span>`,
+          { permanent:true, direction:'top', offset:[0,-(r+2)], opacity:1 }
+        );
+      }
+      markers.push(cm);
+    });
+    circleLayer = L.layerGroup(markers).addTo(map);
+  }
+
+  // ── Légende & stats ──────────────────────────────────────────────
+  updateLegend(mx);
+  updateTop();
+  updateChips();
+}
+
+function updateLegend(mx) {
+  const pal = PALETTES[metric] || PALETTES.total_marchands;
+  const steps = pal.map((c,i) => ({
+    color: c,
+    label: i === 0 ? '0' : fmt(Math.round(mx * i/(pal.length-1)))
+  }));
+  document.getElementById('legend').innerHTML = `
+    <div style="display:flex;height:10px;border-radius:4px;overflow:hidden;margin-bottom:4px">
+      ${steps.map(s=>`<div style="flex:1;background:${s.color}"></div>`).join('')}
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tl);margin-bottom:8px">
+      ${steps.map(s=>`<span>${s.label}</span>`).join('')}
+    </div>
+    ${Object.entries(EC).map(([code,col])=>`
+    <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
+      <div style="width:22px;height:4px;border-radius:2px;background:${col}"></div>
+      <span style="font-size:10.5px;color:var(--tm)">${EN[code]}</span>
+    </div>`).join('')}
+    <div style="margin-top:4px;font-size:10px;color:var(--tl)">● Taille cercle = valeur · ■ Fond = intensité</div>`;
+}
+
+function updateTop() {
+  const s = [...allData].filter(d=>gv(d)>0).sort((a,b)=>gv(b)-gv(a)).slice(0,8);
+  const mx = gv(s[0])||1;
+  document.getElementById('top').innerHTML = s.map((d,i)=>{
+    const col = EC[d.epci]||'#888';
+    const pct = Math.round(gv(d)/mx*100);
+    return `<div class="stat-row">
+      <div class="stat-rank" style="background:${i<3?col:'#E8E0D0'};color:${i<3?'#fff':'#5C4A30'}">${i+1}</div>
+      <div style="flex:1;overflow:hidden">
+        <div class="stat-name" title="${d.commune}">${d.commune}</div>
+        <div style="height:3px;background:#E8E0D0;border-radius:2px;margin-top:2px">
+          <div style="height:100%;width:${pct}%;background:${col};border-radius:2px;transition:width .3s"></div>
+        </div>
+      </div>
+      <div class="stat-val">${fmt(gv(d))}</div>
+      <div class="dot" style="background:${col}"></div>
+    </div>`;
+  }).join('');
+}
+
+function updateChips() {
+  const t = {CCSPN:0,CCVV:0,CCPF:0};
+  allData.forEach(d => { if(d.epci in t) t[d.epci]+=gv(d); });
+  const g = Object.values(t).reduce((a,b)=>a+b,0);
+  const ab = {CCSPN:'Sarlat',CCVV:'Vallée',CCPF:'Fénelon'};
+  document.getElementById('chips').innerHTML = Object.entries(t).map(([e,v])=>{
+    const pct = g>0?Math.round(v/g*100):0;
+    const col = EC[e];
+    return `<span class="chip" style="background:${col}22;color:${col};border:1px solid ${col}55">${ab[e]}: ${fmt(v)} (${pct}%)</span>`;
+  }).join('');
+}
+
+function setM(btn) {
+  document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  metric = btn.dataset.m;
+  rebuild();
+}
+
+// ── Coordonnées de repli (centroïdes approchés) ───────────────────────
+const FALLBACK_COORDS = {
+  "24012":[44.952,1.282],"24050":[44.922,1.385],"24074":[44.818,1.232],
+  "24081":[44.840,1.268],"24082":[44.829,1.215],"24215":[44.886,1.288],
+  "24301":[44.968,1.332],"24317":[44.928,1.330],"24314":[44.878,1.255],
+  "24336":[44.852,1.292],"24392":[44.868,1.302],"24412":[44.968,1.298],
+  "24432":[44.810,1.278],"24470":[44.800,1.218],"24516":[44.932,1.312],
+  "24535":[44.843,1.228],"24574":[44.813,1.238],"24040":[44.833,1.143],
+  "24252":[44.868,1.172],"24255":[44.872,1.122],"24341":[44.892,1.202],
+  "24355":[44.821,1.168],"24366":[44.872,1.082],"24510":[44.818,1.128],
+  "24512":[44.843,1.188],"24471":[44.898,1.212],"24520":[44.888,1.218],
+  "24544":[44.921,1.133],"24577":[44.832,1.162],"24587":[44.842,1.198],
+  "24014":[45.012,1.272],"24015":[44.922,1.038],"24067":[44.920,0.928],
+  "24076":[44.902,1.008],"24106":[44.948,1.178],"24127":[45.042,1.328],
+  "24174":[44.992,1.152],"24175":[45.032,1.268],"24183":[44.972,1.068],
+  "24217":[44.932,1.022],"24172":[44.942,1.018],"24240":[44.882,0.882],
+  "24261":[44.942,1.072],"24291":[45.062,1.162],"24326":[44.982,1.082],
+  "24330":[44.988,1.108],"24356":[45.008,1.032],"24377":[44.918,1.048],
+  "24388":[44.912,0.972],"24404":[44.958,1.032],"24443":[44.998,1.132],
+  "24524":[44.952,1.092],"24531":[45.032,1.138],"24552":[45.018,1.138],
+  "24559":[44.972,1.062],"24563":[44.998,1.198],
+};
+
+// ── Chargement ─────────────────────────────────────────────────────────
+// ── Centroïde d'un polygone GeoJSON ───────────────────────────────────
+function centroid(feature) {
+  try {
+    const coords = feature.geometry.type === 'Polygon'
+      ? feature.geometry.coordinates[0]
+      : feature.geometry.coordinates[0][0];
+    const lats = coords.map(c => c[1]);
+    const lngs = coords.map(c => c[0]);
+    return [(Math.min(...lats)+Math.max(...lats))/2, (Math.min(...lngs)+Math.max(...lngs))/2];
+  } catch(e) { return null; }
+}
+
+async function init() {
+  // ── Étape 0 : données summary (onglet Statistiques) ────────────────
+  fetch(`${API}/api/summary`).then(r=>r.json()).then(d=>{ summaryData=d; }).catch(()=>{});
+
+  // ── Étape 1 : données hébergement ──────────────────────────────────
+  try {
+    const resp = await fetch(`${API}/api/communes`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status} sur /api/communes`);
+    allData = await resp.json();
+    allData.forEach(d => {
+      const fb = FALLBACK_COORDS[d.insee] || [44.9, 1.1];
+      d._lat = fb[0]; d._lng = fb[1];
+      byINSEE[d.insee] = d;
+    });
+  } catch(e) {
+    document.getElementById('loading').style.display = 'none';
+    const el = document.getElementById('error');
+    el.style.display = 'block';
+    el.innerHTML = `
+      <p><strong>Serveur non joignable</strong></p>
+      <p style="margin-top:8px;font-size:12px">
+        Ouvrez un Terminal dans le dossier <code>ipn_hebergement</code> et lancez :<br><br>
+        <code style="background:#f0f0f0;padding:4px 8px;border-radius:4px">
+          source .venv/bin/activate && uvicorn app.main:app --reload
+        </code>
+      </p>
+      <p style="margin-top:8px;font-size:11px;color:#888">Erreur : ${e.message}</p>`;
+    return;
+  }
+
+  // ── Étape 2 : afficher les cercles immédiatement ───────────────────
+  document.getElementById('loading').innerHTML =
+    '<div class="spinner"></div><p>Chargement des contours…</p>';
+  rebuild();   // Cercles visibles pendant que le GeoJSON charge
+
+  const bounds_lats = allData.map(d=>d._lat), bounds_lngs = allData.map(d=>d._lng);
+  map.fitBounds([
+    [Math.min(...bounds_lats), Math.min(...bounds_lngs)],
+    [Math.max(...bounds_lats), Math.max(...bounds_lngs)]
+  ], {padding:[20,20]});
+
+  // ── Étape 3 : charger le GeoJSON (choroplèthe) ─────────────────────
+  try {
+    const gr = await fetch(`${API}/api/geojson`);
+    if (!gr.ok) throw new Error(`HTTP ${gr.status}`);
+    window._geojson = await gr.json();
+
+    // Mettre à jour les centroïdes depuis les vrais polygones
+    window._geojson.features.forEach(f => {
+      const d = byINSEE[f.properties.code];
+      if (!d) return;
+      const c = centroid(f);
+      if (c) { d._lat = c[0]; d._lng = c[1]; }
+      // Copier les propriétés hébergement déjà enrichies par l'API
+      Object.assign(d, f.properties);
+    });
+
+    document.getElementById('loading').style.display = 'none';
+    rebuild();  // Reconstruire avec choroplèthe complet
+  } catch(e) {
+    document.getElementById('loading').style.display = 'none';
+    // Pas grave : les cercles sont déjà affichés, on retire juste le choroplèthe
+    document.getElementById('togChoro').checked = false;
+    document.getElementById('togChoro').disabled = true;
+    rebuild();
+    console.warn('GeoJSON non disponible (choroplèthe désactivé) :', e.message);
+  }
+}
+
+// ── Onglets ────────────────────────────────────────────────────────────
+let summaryData = null;
+
+function switchTab(tab) {
+  const isCarto = tab === 'carto';
+  document.getElementById('tab-carto').classList.toggle('active', isCarto);
+  document.getElementById('tab-stats').classList.toggle('active', !isCarto);
+  document.querySelector('.main').style.display = isCarto ? 'flex' : 'none';
+  document.getElementById('stats-view').style.display = isCarto ? 'none' : 'block';
+  if (!isCarto) renderStats();
+}
+
+// ── Statistiques ───────────────────────────────────────────────────────
+const TYPES = [
+  { key:'lits_hotels',    nb:'nb_hotels',    ico:'🏩', label:'Hôtels' },
+  { key:'lits_rt',        nb:'nb_rt',        ico:'🏢', label:'Résidences de tourisme' },
+  { key:'lits_camping',   nb:'nb_camping',   ico:'⛺', label:'Campings' },
+  { key:'lits_prl',       nb:'nb_prl',       ico:'🚐', label:'PRL' },
+  { key:'lits_vv',        nb:'nb_vv',        ico:'🏘', label:'Villages vacances' },
+  { key:'lits_meublés',   nb:'nb_meublés',   ico:'🏡', label:'Meublés de tourisme' },
+  { key:'lits_gdf',       nb:'nb_gdf',       ico:'🌿', label:'Gîtes de France' },
+  { key:'lits_ch',        nb:'nb_ch',        ico:'☕', label:'Chambres d\'hôtes' },
+  { key:'lits_cle',       nb:'nb_cle',       ico:'🔑', label:'Clévacances' },
+  { key:'lits_etape_grp', nb:'nb_etape_grp', ico:'🏕', label:'Gîte étape / accueil groupe' },
+  { key:'lits_res2aires', nb:'nb_res2aires', ico:'🏖', label:'Résidences secondaires' },
+];
+const EPCIS = ['CCSPN','CCVV','CCPF'];
+
+function renderStats() {
+  if (!summaryData) { document.getElementById('stats-content').textContent = 'Données non disponibles.'; return; }
+
+  const by = {};
+  summaryData.forEach(s => { by[s.epci] = s; });
+  const ipn = by['IPN'];
+
+  function stk(key) {
+    const vals = EPCIS.map(e => by[e]?.[key] || 0);
+    const tot = vals.reduce((a,b)=>a+b,0);
+    if (!tot) return `<div class="stk" style="background:#EDE5D5;border-radius:5px"></div>`;
+    return `<div class="stk">${EPCIS.map((e,i)=>`<div style="width:${vals[i]/tot*100}%;background:${EC[e]}"></div>`).join('')}</div>`;
+  }
+
+  function cell(epci, key, nbKey, rowTot) {
+    const v = by[epci]?.[key] || 0;
+    const nb = by[epci]?.[nbKey] || 0;
+    const pct = rowTot > 0 ? Math.round(v/rowTot*100) : 0;
+    if (!v) return `<td><span class="p">—</span></td>`;
+    return `<td>
+      <div class="v">${fmt(v)}</div>
+      <div class="p">${pct} %</div>
+      ${nb ? `<div class="n">${fmt(nb)} étab.</div>` : ''}
+    </td>`;
+  }
+
+  function row(t, hiClass='') {
+    const rowTot = ipn?.[t.key] || 0;
+    return `<tr class="${hiClass}">
+      <td>${t.ico} ${t.label}</td>
+      <td class="bar-th">${stk(t.key)}</td>
+      ${EPCIS.map(e => cell(e, t.key, t.nb, rowTot)).join('')}
+      <td><div class="v">${fmt(rowTot)}</div></td>
+    </tr>`;
+  }
+
+  document.getElementById('stats-content').innerHTML = `
+    <table class="st">
+      <thead><tr>
+        <th>Type d'hébergement</th>
+        <th class="bar-th">Répartition</th>
+        ${EPCIS.map(e=>`<th style="color:${EC[e]}">${EN[e]}</th>`).join('')}
+        <th>Total IPN</th>
+      </tr></thead>
+      <tbody>
+        <tr class="sep"><td colspan="6">Totaux synthétiques — lits</td></tr>
+        ${row({key:'total_marchands',nb:null,ico:'🏨',label:'Total lits marchands'},'hi')}
+        ${row({key:'total_classes',  nb:null,ico:'⭐',label:'Total lits classés'},  'hi')}
+        <tr class="sep"><td colspan="6">Hébergement marchand — détail</td></tr>
+        ${TYPES.slice(0,10).map(t=>row(t)).join('')}
+        <tr class="sep"><td colspan="6">Hébergement non marchand</td></tr>
+        ${TYPES.slice(10).map(t=>row(t)).join('')}
+      </tbody>
+    </table>`;
+}
+
+init();
+</script>
+</body>
+</html>
