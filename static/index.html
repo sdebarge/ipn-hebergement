@@ -256,14 +256,27 @@ function drawEPCI(){
     if(!activeEPCI.has(epci))return;
     const feats=geojson.features.filter(f=>byINSEE[f.properties.code]?.e===epci);
     if(!feats.length)return;
-    try{
-      let u=feats[0];
-      for(let i=1;i<feats.length;i++){try{u=turf.union(u,feats[i]);}catch(e){}}
-      layers.push(L.geoJSON(u,{
-        style:{fillColor:'transparent',fillOpacity:0,weight:2.8,color:EC[epci],opacity:.9,dashArray:'7 3'},
-        interactive:false
-      }));
-    }catch(e){console.warn('EPCI union',epci,e);}
+    const polys=[];
+    feats.forEach(f=>{
+      const g=f.geometry;
+      if(g.type==='Polygon') polys.push({type:'Feature',properties:{},geometry:g});
+      else if(g.type==='MultiPolygon')
+        g.coordinates.forEach(c=>polys.push({type:'Feature',properties:{},geometry:{type:'Polygon',coordinates:c}}));
+    });
+    let result=polys[0];
+    for(let i=1;i<polys.length;i++){
+      try{
+        const u=turf.union(result,polys[i]);
+        if(u) result=u;
+      }catch(e){
+        const rc=result.geometry.type==='MultiPolygon'?result.geometry.coordinates:[result.geometry.coordinates];
+        result={type:'Feature',properties:{},geometry:{type:'MultiPolygon',coordinates:[...rc,polys[i].geometry.coordinates]}};
+      }
+    }
+    layers.push(L.geoJSON(result,{
+      style:{fillColor:'transparent',fillOpacity:0,weight:2.8,color:EC[epci],opacity:.9,dashArray:'7 3'},
+      interactive:false
+    }));
   });
   lEPCI=L.layerGroup(layers).addTo(map);
 }
