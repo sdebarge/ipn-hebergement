@@ -198,7 +198,7 @@ function choroFill(val,mx,epci){
 function drawCircles(){
   grpC.clearLayers(); grpL.clearLayers();
   const mx=Math.max(...DATA.map(gv),1);
-  [...DATA].sort((a,b)=>gv(b)-gv(a)).forEach(d=>{
+  [...DATA].filter(d=>activeEPCI.has(d.e)).sort((a,b)=>gv(b)-gv(a)).forEach(d=>{
     const v=gv(d); if(!v)return;
     const r=NR+Math.sqrt(v/mx)*(MR-NR),col=EC[d.e];
     const cm=L.circleMarker([d.lat,d.lng],{radius:r,fillColor:col,fillOpacity:.62,color:col,weight:1.8,opacity:.9});
