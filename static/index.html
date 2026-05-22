@@ -235,20 +235,17 @@ function drawComm(){
 function drawEPCI(){
   if(lEPCI){map.removeLayer(lEPCI);lEPCI=null;}
   if(!geojson||!document.getElementById('togEPCI').checked)return;
-  try{
-    const fc={type:'FeatureCollection',features:geojson.features
-      .map(f=>({...f,properties:{...f.properties,_epci:byINSEE[f.properties.code]?.e||''}}))
-      .filter(f=>f.properties._epci)};
-    const dissolved=turf.dissolve(fc,{propertyName:'_epci'});
-    const layers=dissolved.features.map(f=>
-      L.geoJSON(f,{style:{
-        fillColor:'transparent',fillOpacity:0,
-        weight:2.8,color:EC[f.properties._epci]||'#888',
-        opacity:.9,dashArray:'7 3'
-      },interactive:false})
-    );
-    lEPCI=L.layerGroup(layers).addTo(map);
-  }catch(e){console.warn('EPCI dissolve:',e);}
+  const layers=[];
+  ['CCSPN','CCVV','CCPF'].forEach(epci=>{
+    const feats=geojson.features.filter(f=>byINSEE[f.properties.code]?.e===epci);
+    if(!feats.length)return;
+    layers.push(L.geoJSON({type:'FeatureCollection',features:feats},{
+      style:{fillColor:'transparent',fillOpacity:0,
+             weight:2.8,color:EC[epci],opacity:.9,dashArray:'7 3'},
+      interactive:false
+    }));
+  });
+  lEPCI=L.layerGroup(layers).addTo(map);
 }
 
 // ── Redessine tout ────────────────────────────────────────────────────
