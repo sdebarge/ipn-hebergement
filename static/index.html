@@ -4,680 +4,416 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IPN — Offre en hébergement 2025</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
+<link  rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Source+Sans+3:wght@300;400;600&display=swap');
-
-/* ── Couleurs IPN (projet Python de référence) ─────────────────── */
-:root {
-  /* EPCI */
-  --ccspn: #4f81bd;
-  --ccvv:  #9bbb59;
-  --ccpf:  #c0504d;
-  /* Palette IPN */
-  --ipn-gris:   #95a6b1;
-  --ipn-bleu:   #8bcad9;
-  --ipn-vert:   #a0ca9a;
-  --ipn-rose:   #e4a9cd;
-  --ipn-corail: #f3946f;
-  /* UI */
-  --bg:    #F7F2EA;
-  --panel: #FEFAF3;
-  --bd:    #D4C4A0;
-  --td:    #2A1E10;
-  --tm:    #5C4A30;
-  --tl:    #8B7355;
+:root{
+  --ccspn:#4f81bd; --ccvv:#9bbb59; --ccpf:#c0504d;
+  --corail:#f3946f; --bleu:#8bcad9; --vert:#a0ca9a; --rose:#e4a9cd; --gris:#95a6b1;
+  --bg:#F7F2EA; --panel:#FEFAF3; --bd:#D4C4A0; --td:#2A1E10; --tm:#5C4A30; --tl:#8B7355;
 }
-
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--td);height:100vh;display:flex;flex-direction:column;overflow:hidden}
-
-header{background:var(--td);color:#F7F2EA;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:3px solid var(--ipn-corail)}
-header h1{font-family:'Playfair Display',serif;font-size:16px;font-weight:600}
-header .sub{font-size:11px;color:#C4B896;margin-top:1px}
-.badges{display:flex;gap:6px}
+html,body{height:100%;overflow:hidden;font-family:'Source Sans 3',system-ui,sans-serif;background:var(--bg);color:var(--td)}
+header{background:var(--td);color:#F7F2EA;padding:9px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--corail);flex-shrink:0;height:48px}
+header h1{font-family:'Playfair Display',Georgia,serif;font-size:15px;font-weight:600}
+.sub{font-size:10.5px;color:#C4B896;margin-top:1px}
+.badges{display:flex;gap:6px;flex-shrink:0}
 .badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:12px}
-.b-ccspn{background:var(--ccspn);color:#fff}
-.b-ccvv {background:var(--ccvv);color:#fff}
-.b-ccpf {background:var(--ccpf);color:#fff}
-
-.main{display:flex;flex:1;overflow:hidden}
-
-/* ── Sidebar ────────────────────────────────────────────────────── */
-.sidebar{width:265px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow-y:auto}
-.sec{padding:12px 13px;border-bottom:1px solid var(--bd)}
-.sec h3{font-family:'Playfair Display',serif;font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--tl);margin-bottom:9px}
-
-.mbtn{display:block;width:100%;text-align:left;padding:7px 10px;margin-bottom:3px;border:1px solid var(--bd);border-radius:5px;background:transparent;cursor:pointer;font-size:12.5px;color:var(--tm);transition:all .15s;font-family:inherit}
-.mbtn:hover{border-color:var(--ipn-corail);background:#FFF8F0;color:var(--td)}
-.mbtn.active{border-color:var(--ipn-corail);background:linear-gradient(135deg,#FFF8F0,#FFE8D0);color:var(--td);font-weight:600;box-shadow:0 1px 4px rgba(243,148,111,.25)}
-.mbtn .ico{margin-right:6px}
-
-.stat-row{display:flex;align-items:center;padding:5px 0;border-bottom:1px solid #EDE5D5;font-size:11.5px}
-.stat-row:last-child{border-bottom:none}
-.stat-rank{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-right:7px}
-.stat-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tm)}
-.stat-val{font-weight:700;font-size:12px;color:var(--td);margin-left:5px}
-.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-left:4px}
-
-.chips{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}
-.chip{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600}
-
-.tog-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
-.tog-lbl{font-size:12px;color:var(--tm)}
+.b1{background:var(--ccspn);color:#fff}.b2{background:var(--ccvv);color:#fff}.b3{background:var(--ccpf);color:#fff}
+.layout{display:flex;height:calc(100vh - 48px);overflow:hidden}
+.sidebar{width:255px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow-y:auto}
+.sec{padding:10px 12px;border-bottom:1px solid var(--bd)}
+.sec h3{font-family:'Playfair Display',Georgia,serif;font-size:9.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--tl);margin-bottom:8px}
+.mbtn{display:block;width:100%;text-align:left;padding:6px 9px;margin-bottom:3px;border:1px solid var(--bd);border-radius:5px;background:transparent;cursor:pointer;font-size:11.5px;color:var(--tm);transition:all .14s;font-family:inherit}
+.mbtn:hover{border-color:var(--corail);background:#FFF8F0;color:var(--td)}
+.mbtn.on{border-color:var(--corail);background:linear-gradient(135deg,#FFF8F0,#FFE8D0);color:var(--td);font-weight:600}
+.mbtn .ico{margin-right:5px}
+.tog-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.tog-lbl{font-size:11.5px;color:var(--tm)}
 .tog{position:relative;width:34px;height:18px}
 .tog input{display:none}
 .tog-sl{position:absolute;inset:0;background:#C9B99A;border-radius:9px;cursor:pointer;transition:.2s}
 .tog-sl::before{content:'';position:absolute;width:12px;height:12px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.2s}
-.tog input:checked+.tog-sl{background:var(--ipn-corail)}
+.tog input:checked+.tog-sl{background:var(--corail)}
 .tog input:checked+.tog-sl::before{transform:translateX(16px)}
-
-/* ── Map ────────────────────────────────────────────────────────── */
-#map{flex:1}
-
-/* ── Tooltip Leaflet ─────────────────────────────────────────────── */
-.leaflet-tooltip{background:#2A1E10!important;border:none!important;border-radius:8px!important;padding:0!important;box-shadow:0 4px 20px rgba(0,0,0,.35)!important}
+.tog input:disabled+.tog-sl{opacity:.4;cursor:not-allowed}
+.geo-status{font-size:9.5px;color:var(--tl);margin-top:4px;font-style:italic}
+.stat{display:flex;align-items:center;padding:4px 0;border-bottom:1px solid #EDE5D5;font-size:11px}
+.stat:last-child{border-bottom:none}
+.rk{width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-right:6px}
+.sn{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tm)}
+.sv{font-weight:700;font-size:11px;color:var(--td);margin-left:4px}
+.sd{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-left:3px}
+.chips{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}
+.chip{font-size:9.5px;padding:2px 6px;border-radius:10px;font-weight:600}
+.sz-row{display:flex;align-items:flex-end;gap:10px;margin-top:4px}
+.sz-c{border-radius:50%;background:rgba(79,129,189,.28);border:2px solid rgba(79,129,189,.6);flex-shrink:0}
+.sz-l{font-size:9px;color:var(--tl);text-align:center;margin-top:2px}
+#map{flex:1;z-index:1}
+.leaflet-tooltip{background:#2A1E10!important;border:none!important;border-radius:8px!important;padding:0!important;box-shadow:0 4px 20px rgba(0,0,0,.4)!important}
 .leaflet-tooltip::before{display:none!important}
-.tt{padding:11px 13px;font-family:'Source Sans 3',sans-serif;font-size:11.5px;min-width:210px;color:#F7F2EA}
-.tt h4{font-family:'Playfair Display',serif;font-size:14px;margin-bottom:4px}
-.tt-tag{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:10px;margin-bottom:7px;display:inline-block}
-.tt-row{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:10.5px}
+.tt-inner{padding:11px 13px;font-family:'Source Sans 3',system-ui,sans-serif;font-size:11.5px;min-width:215px;color:#F7F2EA}
+.tt-inner h4{font-family:'Playfair Display',Georgia,serif;font-size:13px;margin-bottom:4px}
+.tt-tag{font-size:9px;font-weight:700;padding:2px 6px;border-radius:9px;margin-bottom:7px;display:inline-block}
+.tt-row{display:flex;justify-content:space-between;padding:1.5px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:10.5px}
 .tt-row:last-child{border-bottom:none}
 .tt-k{color:#C4B896}.tt-v{font-weight:700}
-.tt-section{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#8B7355;margin:5px 0 2px}
-
-.map-credit{position:absolute;bottom:6px;left:6px;z-index:1000;font-size:9.5px;color:var(--tl);background:rgba(254,250,243,.9);padding:3px 7px;border-radius:4px;pointer-events:none}
-
-#loading{position:absolute;inset:0;background:rgba(247,242,234,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999}
-.spinner{width:40px;height:40px;border:4px solid var(--bd);border-top-color:var(--ipn-corail);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px}
-@keyframes spin{to{transform:rotate(360deg)}}
-#loading p{color:var(--tm);font-size:13px}
-#error{display:none;padding:20px;color:#c0504d;text-align:center;font-size:13px}
-
-.sz-box{display:flex;align-items:flex-end;gap:10px;margin-top:4px}
-.sz-circ{border-radius:50%;background:rgba(79,129,189,.3);border:2px solid rgba(79,129,189,.7);flex-shrink:0}
-.sz-lbl{font-size:9.5px;color:var(--tl);text-align:center;margin-top:2px}
-
-/* ── Onglets ─────────────────────────────────────────────────────── */
-.tabs{display:flex;background:var(--panel);border-bottom:2px solid var(--bd);flex-shrink:0}
-.tab-btn{padding:9px 22px;border:none;background:transparent;cursor:pointer;font-family:'Source Sans 3',sans-serif;font-size:13px;color:var(--tm);border-bottom:2px solid transparent;margin-bottom:-2px;transition:.15s}
-.tab-btn:hover{color:var(--td)}
-.tab-btn.active{color:var(--td);border-bottom-color:var(--ipn-corail);font-weight:600}
-
-/* ── Statistiques ────────────────────────────────────────────────── */
-#stats-view{flex:1;overflow-y:auto;padding:24px 32px;background:var(--bg)}
-.st{width:100%;border-collapse:collapse;font-size:12px;background:var(--panel);border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.st th{padding:10px 14px;text-align:right;font-weight:700;font-size:10.5px;border-bottom:2px solid var(--bd);color:var(--tl);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
-.st th:first-child{text-align:left;width:220px}
-.st th.bar-th{text-align:center;width:130px}
-.st td{padding:8px 14px;border-bottom:1px solid #EDE5D5;vertical-align:middle;text-align:right}
-.st td:first-child{text-align:left}
-.st tr:last-child td{border-bottom:none}
-.st tr:hover td{background:#FFF8F0}
-.st .v{font-weight:700;font-size:13px;color:var(--td)}
-.st .p{font-size:10.5px;color:var(--tl)}
-.st .n{font-size:10px;color:#A09080}
-.st .sep td{background:var(--bg);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--tl);padding:12px 14px 5px;border-bottom:1px solid var(--bd)}
-.st .hi td{background:#FFF5EC}
-.st .hi .v{font-size:14px}
-.stk{height:10px;border-radius:5px;overflow:hidden;display:flex;min-width:100px}
-.stk div{height:100%}
-
-/* ── Filtres EPCI ────────────────────────────────────────────────── */
-.epci-btn{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;border:2px solid transparent;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;transition:all .15s;width:100%;text-align:left;background:transparent;margin-bottom:4px}
-.epci-btn .edot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.epci-btn.on{background:#FFF8F0;border-color:currentColor}
-.epci-btn.off{opacity:.35;filter:grayscale(.5)}
+.tt-s{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#7B6B55;margin:5px 0 2px}
+.commune-label div{
+  font-family:'Source Sans 3',system-ui,sans-serif;font-size:10px;font-weight:600;
+  color:#2A1E10;white-space:nowrap;pointer-events:none;
+  text-shadow:1px 1px 2px rgba(255,255,255,.95),-1px -1px 2px rgba(255,255,255,.95),
+              1px -1px 2px rgba(255,255,255,.95),-1px 1px 2px rgba(255,255,255,.95);
+}
 </style>
 </head>
 <body>
 <header>
   <div>
     <h1>🗺 Offre en Hébergements — Intense Périgord Noir</h1>
-    <div class="sub" id="annee">Données 2025 · Source : observatoire départemental de l'économie touristique · 56 communes · Dordogne (24)</div>
+    <div class="sub">Données 2025 · Source : observatoire départemental de l'économie touristique · 56 communes · Dordogne (24)</div>
   </div>
   <div class="badges">
-    <span class="badge b-ccspn">Sarlat-Périgord Noir</span>
-    <span class="badge b-ccvv">Vallée de l'Homme</span>
-    <span class="badge b-ccpf">Pays de Fénelon</span>
+    <span class="badge b1">Sarlat-Périgord Noir</span>
+    <span class="badge b2">Vallée de l'Homme</span>
+    <span class="badge b3">Pays de Fénelon</span>
   </div>
 </header>
-
-<div class="tabs">
-  <button class="tab-btn active" id="tab-carto" onclick="switchTab('carto')">🗺 Cartographie</button>
-  <button class="tab-btn"        id="tab-stats" onclick="switchTab('stats')">📊 Statistiques</button>
-</div>
-
-<div class="main">
+<div class="layout">
   <div class="sidebar">
     <div class="sec">
-      <h3>EPCI</h3>
-      <button class="epci-btn on" id="eb-CCSPN" onclick="toggleEpci('CCSPN',this)" style="color:var(--ccspn)">
-        <span class="edot" style="background:var(--ccspn)"></span>Sarlat-Périgord Noir
-      </button>
-      <button class="epci-btn on" id="eb-CCVV" onclick="toggleEpci('CCVV',this)" style="color:var(--ccvv)">
-        <span class="edot" style="background:var(--ccvv)"></span>Vallée de l'Homme
-      </button>
-      <button class="epci-btn on" id="eb-CCPF" onclick="toggleEpci('CCPF',this)" style="color:var(--ccpf)">
-        <span class="edot" style="background:var(--ccpf)"></span>Pays de Fénelon
-      </button>
-    </div>
-    <div class="sec">
       <h3>Indicateur</h3>
-      <button class="mbtn active" data-m="total_marchands"    onclick="setM(this)"><span class="ico">🏨</span>Total lits marchands</button>
-      <button class="mbtn"        data-m="total_classes"      onclick="setM(this)"><span class="ico">⭐</span>Total lits classés</button>
-      <button class="mbtn"        data-m="lits_camping"       onclick="setM(this)"><span class="ico">⛺</span>Campings</button>
-      <button class="mbtn"        data-m="lits_plein_air"     onclick="setM(this)"><span class="ico">🌲</span>Plein air (camping+PRL+VV)</button>
-      <button class="mbtn"        data-m="lits_hotels"        onclick="setM(this)"><span class="ico">🏩</span>Hôtels</button>
-      <button class="mbtn"        data-m="lits_rt"            onclick="setM(this)"><span class="ico">🏢</span>Résidences de tourisme</button>
-      <button class="mbtn"        data-m="lits_prl"           onclick="setM(this)"><span class="ico">🚐</span>PRL</button>
-      <button class="mbtn"        data-m="lits_vv"            onclick="setM(this)"><span class="ico">🏘</span>Villages vacances</button>
-      <button class="mbtn"        data-m="lits_meublés"       onclick="setM(this)"><span class="ico">🏡</span>Meublés de tourisme</button>
-      <button class="mbtn"        data-m="lits_gdf"           onclick="setM(this)"><span class="ico">🌿</span>Gîtes GDF</button>
-      <button class="mbtn"        data-m="lits_ch"            onclick="setM(this)"><span class="ico">☕</span>Chambres d'hôtes</button>
-      <button class="mbtn"        data-m="lits_cle"           onclick="setM(this)"><span class="ico">🔑</span>Clévacances</button>
-      <button class="mbtn"        data-m="lits_labellisé"     onclick="setM(this)"><span class="ico">🏅</span>Héb. labellisé</button>
-      <button class="mbtn"        data-m="lits_res2aires"     onclick="setM(this)"><span class="ico">🏖</span>Résidences secondaires</button>
+      <button class="mbtn on" data-m="tm"  onclick="setM(this)"><span class="ico">🏨</span>Total lits marchands</button>
+      <button class="mbtn"    data-m="tc"  onclick="setM(this)"><span class="ico">⭐</span>Total lits classés</button>
+      <button class="mbtn"    data-m="cp"  onclick="setM(this)"><span class="ico">⛺</span>Campings</button>
+      <button class="mbtn"    data-m="pa"  onclick="setM(this)"><span class="ico">🌲</span>Plein air (camping+PRL+VV)</button>
+      <button class="mbtn"    data-m="ht"  onclick="setM(this)"><span class="ico">🏩</span>Hôtels</button>
+      <button class="mbtn"    data-m="rt"  onclick="setM(this)"><span class="ico">🏢</span>Résidences de tourisme</button>
+      <button class="mbtn"    data-m="prl" onclick="setM(this)"><span class="ico">🚐</span>PRL</button>
+      <button class="mbtn"    data-m="vv"  onclick="setM(this)"><span class="ico">🏘</span>Villages vacances</button>
+      <button class="mbtn"    data-m="mb"  onclick="setM(this)"><span class="ico">🏡</span>Meublés de tourisme</button>
+      <button class="mbtn"    data-m="gdf" onclick="setM(this)"><span class="ico">🌿</span>Gîtes GDF</button>
+      <button class="mbtn"    data-m="ch"  onclick="setM(this)"><span class="ico">☕</span>Chambres d'hôtes</button>
+      <button class="mbtn"    data-m="cle" onclick="setM(this)"><span class="ico">🔑</span>Clévacances</button>
+      <button class="mbtn"    data-m="lb"  onclick="setM(this)"><span class="ico">🏅</span>Héb. labellisé</button>
+      <button class="mbtn"    data-m="r2"  onclick="setM(this)"><span class="ico">🏖</span>Résidences secondaires</button>
     </div>
     <div class="sec">
       <h3>Affichage</h3>
       <div class="tog-row">
         <span class="tog-lbl">Choroplèthe</span>
-        <label class="tog"><input type="checkbox" id="togChoro" onchange="rebuild()"><div class="tog-sl"></div></label>
+        <label class="tog"><input type="checkbox" id="togChoro" onchange="redraw()" disabled><div class="tog-sl"></div></label>
       </div>
       <div class="tog-row">
         <span class="tog-lbl">Cercles proportionnels</span>
-        <label class="tog"><input type="checkbox" id="togCircles" checked onchange="rebuild()"><div class="tog-sl"></div></label>
+        <label class="tog"><input type="checkbox" id="togCircles" checked onchange="redraw()"><div class="tog-sl"></div></label>
+      </div>
+      <div class="tog-row">
+        <span class="tog-lbl">Limites communes</span>
+        <label class="tog"><input type="checkbox" id="togCommunes" onchange="redraw()" disabled><div class="tog-sl"></div></label>
       </div>
       <div class="tog-row">
         <span class="tog-lbl">Limites EPCI</span>
-        <label class="tog"><input type="checkbox" id="togEpci" checked onchange="rebuild()"><div class="tog-sl"></div></label>
+        <label class="tog"><input type="checkbox" id="togEPCI" onchange="redraw()" disabled><div class="tog-sl"></div></label>
       </div>
       <div class="tog-row">
-        <span class="tog-lbl">Limites communales</span>
-        <label class="tog"><input type="checkbox" id="togCommunes" onchange="rebuild()"><div class="tog-sl"></div></label>
-      </div>
-      <div class="tog-row" style="display:none">
         <span class="tog-lbl">Noms des communes</span>
-        <label class="tog"><input type="checkbox" id="togLabels" onchange="rebuild()"><div class="tog-sl"></div></label>
+        <label class="tog"><input type="checkbox" id="togLabels" onchange="redraw()"><div class="tog-sl"></div></label>
       </div>
+      <div class="tog-row">
+        <span class="tog-lbl">Fond sombre</span>
+        <label class="tog"><input type="checkbox" id="togDark" onchange="switchTiles()"><div class="tog-sl"></div></label>
+      </div>
+      <div class="geo-status" id="geoStatus">⏳ Chargement des contours…</div>
     </div>
     <div class="sec">
-      <h3>Légende</h3>
-      <div id="legend"></div>
+      <h3>Légende — taille des cercles</h3>
+      <div id="szRow" class="sz-row"></div>
       <div class="chips" id="chips"></div>
     </div>
     <div class="sec" style="flex:1">
       <h3>Top 8 communes</h3>
-      <div id="top"></div>
+      <div id="top8"></div>
     </div>
   </div>
-
-  <div style="flex:1;position:relative;display:flex;flex-direction:column">
-    <div id="loading"><div class="spinner"></div><p>Chargement depuis l'API…</p></div>
-    <div id="error"></div>
-    <div id="map"></div>
-    <div class="map-credit">Fond © OpenStreetMap/CARTO · Contours © geo.api.gouv.fr · Données IPN</div>
-  </div>
+  <div id="map"></div>
 </div>
-
-<div id="stats-view" style="display:none">
-  <div style="max-width:1000px;margin:0 auto">
-    <div id="stats-content" style="color:var(--tm);font-size:13px">Chargement…</div>
-  </div>
-</div>
-
 <script>
-// ── Configuration ─────────────────────────────────────────────────────
-const API = '';  // même origine que le serveur FastAPI
+// ── Couleurs IPN ──────────────────────────────────────────────────────
+const EC = {CCSPN:'#4f81bd', CCVV:'#9bbb59', CCPF:'#c0504d'};
+const EN = {CCSPN:'Sarlat-Périgord Noir', CCVV:"Vallée de l'Homme", CCPF:'Pays de Fénelon'};
 
-const EC = { CCSPN:'#4f81bd', CCVV:'#9bbb59', CCPF:'#c0504d' };
-const EN = { CCSPN:'Sarlat-Périgord Noir', CCVV:"Vallée de l'Homme", CCPF:'Pays de Fénelon' };
+// ── Données (embarquées — zéro dépendance serveur) ────────────────────
+const DATA = [{"c":"Beynac et Cazenac","insee":"24040","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.836,"lng":1.1484,"tm":771,"tc":583,"ht":41,"rt":0,"cp":396,"prl":0,"vv":0,"gdf":45,"ch":53,"cle":0,"mb":236,"grp":0,"pa":396,"r2":340,"nb_ht":2,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":11,"nb_ch":21,"nb_cle":0,"nb_mb":44},{"c":"Marcillac St Quentin","insee":"24252","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8761,"lng":1.1791,"tm":764,"tc":513,"ht":0,"rt":0,"cp":402,"prl":0,"vv":0,"gdf":64,"ch":36,"cle":0,"mb":262,"grp":0,"pa":402,"r2":0,"nb_ht":0,"nb_cp":2,"nb_prl":0,"nb_vv":0,"nb_gdf":10,"nb_ch":13,"nb_cle":0,"nb_mb":41},{"c":"Marquay","insee":"24255","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8685,"lng":1.1244,"tm":496,"tc":375,"ht":33,"rt":0,"cp":0,"prl":0,"vv":222,"gdf":26,"ch":48,"cle":0,"mb":167,"grp":0,"pa":222,"r2":370,"nb_ht":1,"nb_cp":0,"nb_prl":0,"nb_vv":1,"nb_gdf":5,"nb_ch":16,"nb_cle":0,"nb_mb":33},{"c":"Proissans","insee":"24341","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.9002,"lng":1.2133,"tm":1289,"tc":1121,"ht":0,"rt":0,"cp":881,"prl":0,"vv":0,"gdf":64,"ch":49,"cle":8,"mb":287,"grp":0,"pa":881,"r2":170,"nb_ht":0,"nb_cp":3,"nb_prl":0,"nb_vv":0,"nb_gdf":11,"nb_ch":19,"nb_cle":2,"nb_mb":55},{"c":"Roque Gageac (La)","insee":"24355","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8259,"lng":1.1681,"tm":1578,"tc":1126,"ht":184,"rt":0,"cp":978,"prl":0,"vv":0,"gdf":107,"ch":44,"cle":0,"mb":253,"grp":12,"pa":978,"r2":335,"nb_ht":4,"nb_cp":3,"nb_prl":0,"nb_vv":0,"nb_gdf":22,"nb_ch":18,"nb_cle":0,"nb_mb":44},{"c":"Saint André d'Allas","insee":"24366","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8721,"lng":1.0867,"tm":1476,"tc":1277,"ht":0,"rt":0,"cp":1179,"prl":0,"vv":0,"gdf":27,"ch":40,"cle":4,"mb":226,"grp":0,"pa":1179,"r2":305,"nb_ht":0,"nb_cp":4,"nb_prl":0,"nb_vv":0,"nb_gdf":6,"nb_ch":16,"nb_cle":1,"nb_mb":49},{"c":"Saint Vincent de Cosse","insee":"24510","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.817,"lng":1.1356,"tm":647,"tc":364,"ht":80,"rt":0,"cp":186,"prl":0,"vv":0,"gdf":10,"ch":51,"cle":0,"mb":320,"grp":0,"pa":186,"r2":205,"nb_ht":1,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":19,"nb_cle":0,"nb_mb":60},{"c":"Saint Vincent le Paluel","insee":"24512","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8508,"lng":1.1937,"tm":131,"tc":72,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":26,"ch":13,"cle":6,"mb":86,"grp":0,"pa":0,"r2":145,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":6,"nb_ch":5,"nb_cle":1,"nb_mb":15},{"c":"Sainte Nathalène","insee":"24471","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.9059,"lng":1.2233,"tm":2529,"tc":2327,"ht":30,"rt":0,"cp":2333,"prl":0,"vv":0,"gdf":26,"ch":36,"cle":0,"mb":104,"grp":0,"pa":2333,"r2":260,"nb_ht":1,"nb_cp":4,"nb_prl":0,"nb_vv":0,"nb_gdf":6,"nb_ch":18,"nb_cle":0,"nb_mb":17},{"c":"Sarlat La Canéda","insee":"24520","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8918,"lng":1.2168,"tm":7156,"tc":5724,"ht":1375,"rt":582,"cp":1656,"prl":201,"vv":0,"gdf":176,"ch":490,"cle":39,"mb":2566,"grp":71,"pa":1857,"r2":2840,"nb_ht":22,"nb_cp":4,"nb_prl":2,"nb_vv":0,"nb_gdf":35,"nb_ch":207,"nb_cle":9,"nb_mb":605},{"c":"Tamniès","insee":"24544","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.9247,"lng":1.1389,"tm":841,"tc":775,"ht":101,"rt":0,"cp":315,"prl":200,"vv":0,"gdf":7,"ch":22,"cle":0,"mb":147,"grp":49,"pa":515,"r2":300,"nb_ht":1,"nb_cp":2,"nb_prl":1,"nb_vv":0,"nb_gdf":1,"nb_ch":8,"nb_cle":0,"nb_mb":30},{"c":"Vézac","insee":"24577","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8382,"lng":1.1644,"tm":1638,"tc":1303,"ht":109,"rt":0,"cp":1184,"prl":0,"vv":0,"gdf":6,"ch":39,"cle":4,"mb":278,"grp":18,"pa":1184,"r2":425,"nb_ht":2,"nb_cp":5,"nb_prl":0,"nb_vv":0,"nb_gdf":1,"nb_ch":18,"nb_cle":1,"nb_mb":46},{"c":"Vitrac","insee":"24587","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8472,"lng":1.2033,"tm":2587,"tc":2250,"ht":240,"rt":0,"cp":1842,"prl":0,"vv":0,"gdf":49,"ch":80,"cle":6,"mb":370,"grp":0,"pa":1842,"r2":265,"nb_ht":4,"nb_cp":4,"nb_prl":0,"nb_vv":0,"nb_gdf":10,"nb_ch":31,"nb_cle":1,"nb_mb":73},{"c":"Aubas","insee":"24014","e":"CCVV","en":"Vallée de l'Homme","lat":45.0212,"lng":1.278,"tm":162,"tc":82,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":10,"ch":20,"cle":8,"mb":124,"grp":0,"pa":0,"r2":120,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":8,"nb_cle":2,"nb_mb":25},{"c":"Audrix","insee":"24015","e":"CCVV","en":"Vallée de l'Homme","lat":44.9214,"lng":1.0421,"tm":56,"tc":39,"ht":15,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":0,"ch":0,"cle":0,"mb":41,"grp":0,"pa":0,"r2":135,"nb_ht":1,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":0,"nb_cle":0,"nb_mb":10},{"c":"Bugue (Le)","insee":"24067","e":"CCVV","en":"Vallée de l'Homme","lat":44.9195,"lng":0.9305,"tm":2396,"tc":2204,"ht":185,"rt":383,"cp":1392,"prl":0,"vv":0,"gdf":41,"ch":54,"cle":4,"mb":337,"grp":0,"pa":1392,"r2":1230,"nb_ht":3,"nb_cp":3,"nb_prl":0,"nb_vv":0,"nb_gdf":9,"nb_ch":24,"nb_cle":1,"nb_mb":71},{"c":"Campagne","insee":"24076","e":"CCVV","en":"Vallée de l'Homme","lat":44.9073,"lng":1.0131,"tm":378,"tc":328,"ht":0,"rt":0,"cp":306,"prl":0,"vv":0,"gdf":6,"ch":23,"cle":0,"mb":43,"grp":0,"pa":306,"r2":235,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":1,"nb_ch":9,"nb_cle":0,"nb_mb":11},{"c":"Chapelle Aubareil (La)","insee":"24106","e":"CCVV","en":"Vallée de l'Homme","lat":44.956,"lng":1.1887,"tm":618,"tc":427,"ht":43,"rt":0,"cp":276,"prl":40,"vv":0,"gdf":6,"ch":63,"cle":0,"mb":190,"grp":0,"pa":316,"r2":445,"nb_ht":1,"nb_cp":1,"nb_prl":1,"nb_vv":0,"nb_gdf":1,"nb_ch":28,"nb_cle":0,"nb_mb":30},{"c":"Coly - Saint Amand","insee":"24127","e":"CCVV","en":"Vallée de l'Homme","lat":45.0479,"lng":1.334,"tm":2086,"tc":1257,"ht":53,"rt":442,"cp":627,"prl":522,"vv":0,"gdf":34,"ch":70,"cle":0,"mb":329,"grp":9,"pa":1149,"r2":660,"nb_ht":2,"nb_cp":2,"nb_prl":2,"nb_vv":0,"nb_gdf":6,"nb_ch":25,"nb_cle":0,"nb_mb":54},{"c":"Fanlac","insee":"24174","e":"CCVV","en":"Vallée de l'Homme","lat":44.9921,"lng":1.1576,"tm":57,"tc":6,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":0,"ch":0,"cle":2,"mb":55,"grp":0,"pa":0,"r2":170,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":0,"nb_cle":1,"nb_mb":9},{"c":"Farges (Les)","insee":"24175","e":"CCVV","en":"Vallée de l'Homme","lat":45.0282,"lng":1.2727,"tm":44,"tc":7,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":0,"ch":0,"cle":0,"mb":44,"grp":0,"pa":0,"r2":75,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":0,"nb_cle":0,"nb_mb":12},{"c":"Fleurac","insee":"24183","e":"CCVV","en":"Vallée de l'Homme","lat":44.9706,"lng":1.0742,"tm":125,"tc":56,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":13,"ch":10,"cle":4,"mb":98,"grp":0,"pa":0,"r2":460,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":3,"nb_ch":4,"nb_cle":1,"nb_mb":14},{"c":"Journiac","insee":"24217","e":"CCVV","en":"Vallée de l'Homme","lat":44.9337,"lng":1.0227,"tm":112,"tc":12,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":4,"ch":0,"cle":0,"mb":108,"grp":0,"pa":0,"r2":190,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":1,"nb_ch":0,"nb_cle":0,"nb_mb":17},{"c":"Les Eyzies","insee":"24172","e":"CCVV","en":"Vallée de l'Homme","lat":44.9397,"lng":1.0173,"tm":3069,"tc":2582,"ht":346,"rt":536,"cp":1549,"prl":0,"vv":0,"gdf":49,"ch":104,"cle":9,"mb":377,"grp":99,"pa":1549,"r2":1805,"nb_ht":8,"nb_cp":5,"nb_prl":0,"nb_vv":0,"nb_gdf":11,"nb_ch":49,"nb_cle":2,"nb_mb":82},{"c":"Limeuil","insee":"24240","e":"CCVV","en":"Vallée de l'Homme","lat":44.8856,"lng":0.8898,"tm":783,"tc":483,"ht":21,"rt":218,"cp":414,"prl":0,"vv":0,"gdf":34,"ch":12,"cle":0,"mb":84,"grp":0,"pa":414,"r2":740,"nb_ht":1,"nb_cp":2,"nb_prl":0,"nb_vv":0,"nb_gdf":6,"nb_ch":4,"nb_cle":0,"nb_mb":12},{"c":"Mauzens et Miremont","insee":"24261","e":"CCVV","en":"Vallée de l'Homme","lat":44.9468,"lng":1.0762,"tm":207,"tc":107,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":10,"ch":22,"cle":0,"mb":175,"grp":0,"pa":0,"r2":295,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":1,"nb_ch":10,"nb_cle":0,"nb_mb":22},{"c":"Montignac","insee":"24291","e":"CCVV","en":"Vallée de l'Homme","lat":45.0651,"lng":1.1589,"tm":2643,"tc":1943,"ht":218,"rt":1201,"cp":297,"prl":0,"vv":152,"gdf":37,"ch":62,"cle":9,"mb":533,"grp":134,"pa":449,"r2":1940,"nb_ht":5,"nb_cp":3,"nb_prl":0,"nb_vv":2,"nb_gdf":6,"nb_ch":29,"nb_cle":2,"nb_mb":115},{"c":"Peyzac le Moustier","insee":"24326","e":"CCVV","en":"Vallée de l'Homme","lat":44.9847,"lng":1.0869,"tm":92,"tc":76,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":0,"ch":12,"cle":0,"mb":80,"grp":0,"pa":0,"r2":290,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":6,"nb_cle":0,"nb_mb":16},{"c":"Plazac","insee":"24330","e":"CCVV","en":"Vallée de l'Homme","lat":44.9943,"lng":1.1088,"tm":651,"tc":463,"ht":0,"rt":0,"cp":345,"prl":0,"vv":0,"gdf":35,"ch":39,"cle":0,"mb":232,"grp":0,"pa":345,"r2":690,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":5,"nb_ch":15,"nb_cle":0,"nb_mb":39},{"c":"Rouffignac Saint Cernin de Reilhac","insee":"24356","e":"CCVV","en":"Vallée de l'Homme","lat":45.0056,"lng":1.0357,"tm":1216,"tc":972,"ht":46,"rt":0,"cp":837,"prl":0,"vv":0,"gdf":20,"ch":30,"cle":6,"mb":277,"grp":0,"pa":837,"r2":600,"nb_ht":1,"nb_cp":5,"nb_prl":0,"nb_vv":0,"nb_gdf":3,"nb_ch":15,"nb_cle":2,"nb_mb":46},{"c":"Saint Avit de Vialard","insee":"24377","e":"CCVV","en":"Vallée de l'Homme","lat":44.9212,"lng":1.0479,"tm":1865,"tc":1250,"ht":0,"rt":104,"cp":1224,"prl":500,"vv":0,"gdf":0,"ch":0,"cle":0,"mb":37,"grp":0,"pa":1724,"r2":50,"nb_ht":0,"nb_cp":1,"nb_prl":1,"nb_vv":0,"nb_gdf":0,"nb_ch":0,"nb_cle":0,"nb_mb":7},{"c":"Saint Chamassy","insee":"24388","e":"CCVV","en":"Vallée de l'Homme","lat":44.9087,"lng":0.974,"tm":237,"tc":137,"ht":0,"rt":0,"cp":0,"prl":54,"vv":0,"gdf":47,"ch":4,"cle":0,"mb":132,"grp":0,"pa":54,"r2":570,"nb_ht":0,"nb_cp":0,"nb_prl":1,"nb_vv":0,"nb_gdf":12,"nb_ch":2,"nb_cle":0,"nb_mb":19},{"c":"Saint Félix de Reilhac et Mortemart","insee":"24404","e":"CCVV","en":"Vallée de l'Homme","lat":44.9598,"lng":1.0372,"tm":272,"tc":28,"ht":0,"rt":0,"cp":195,"prl":0,"vv":0,"gdf":0,"ch":0,"cle":0,"mb":77,"grp":0,"pa":195,"r2":190,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":0,"nb_cle":0,"nb_mb":12},{"c":"Saint Léon sur Vézère","insee":"24443","e":"CCVV","en":"Vallée de l'Homme","lat":44.9985,"lng":1.1329,"tm":878,"tc":692,"ht":0,"rt":0,"cp":639,"prl":0,"vv":0,"gdf":0,"ch":26,"cle":0,"mb":213,"grp":0,"pa":639,"r2":740,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":10,"nb_cle":0,"nb_mb":39},{"c":"Savignac de Miremont","insee":"24524","e":"CCVV","en":"Vallée de l'Homme","lat":44.9541,"lng":1.0934,"tm":104,"tc":56,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":16,"ch":15,"cle":0,"mb":73,"grp":0,"pa":0,"r2":135,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":3,"nb_ch":4,"nb_cle":0,"nb_mb":13},{"c":"Sergeac","insee":"24531","e":"CCVV","en":"Vallée de l'Homme","lat":45.0292,"lng":1.1395,"tm":176,"tc":77,"ht":20,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":10,"ch":8,"cle":11,"mb":127,"grp":0,"pa":0,"r2":165,"nb_ht":1,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":3,"nb_cle":2,"nb_mb":19},{"c":"Thonac","insee":"24552","e":"CCVV","en":"Vallée de l'Homme","lat":45.0187,"lng":1.143,"tm":346,"tc":281,"ht":53,"rt":0,"cp":216,"prl":0,"vv":0,"gdf":0,"ch":0,"cle":0,"mb":77,"grp":0,"pa":216,"r2":185,"nb_ht":1,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":0,"nb_cle":0,"nb_mb":12},{"c":"Tursac","insee":"24559","e":"CCVV","en":"Vallée de l'Homme","lat":44.9747,"lng":1.0612,"tm":952,"tc":798,"ht":0,"rt":0,"cp":747,"prl":0,"vv":0,"gdf":22,"ch":26,"cle":0,"mb":157,"grp":0,"pa":747,"r2":345,"nb_ht":0,"nb_cp":5,"nb_prl":0,"nb_vv":0,"nb_gdf":4,"nb_ch":10,"nb_cle":0,"nb_mb":29},{"c":"Valojoulx","insee":"24563","e":"CCVV","en":"Vallée de l'Homme","lat":45.0019,"lng":1.2019,"tm":160,"tc":64,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":12,"ch":40,"cle":12,"mb":96,"grp":0,"pa":0,"r2":190,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":14,"nb_cle":2,"nb_mb":20},{"c":"Archignac","insee":"24012","e":"CCPF","en":"Pays de Fénelon","lat":44.9474,"lng":1.2979,"tm":153,"tc":95,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":40,"ch":33,"cle":0,"mb":80,"grp":0,"pa":0,"r2":310,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":7,"nb_ch":12,"nb_cle":0,"nb_mb":15},{"c":"Borrèze","insee":"24050","e":"CCPF","en":"Pays de Fénelon","lat":44.9214,"lng":1.3919,"tm":81,"tc":63,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":30,"ch":2,"cle":0,"mb":49,"grp":0,"pa":0,"r2":445,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":5,"nb_ch":1,"nb_cle":0,"nb_mb":7},{"c":"Calviac en Périgord","insee":"24074","e":"CCPF","en":"Pays de Fénelon","lat":44.8344,"lng":1.2255,"tm":756,"tc":549,"ht":0,"rt":0,"cp":465,"prl":109,"vv":66,"gdf":37,"ch":4,"cle":0,"mb":75,"grp":0,"pa":640,"r2":400,"nb_ht":0,"nb_cp":1,"nb_prl":2,"nb_vv":1,"nb_gdf":7,"nb_ch":1,"nb_cle":0,"nb_mb":16},{"c":"Carlux","insee":"24081","e":"CCPF","en":"Pays de Fénelon","lat":44.8511,"lng":1.2813,"tm":610,"tc":343,"ht":40,"rt":0,"cp":240,"prl":0,"vv":0,"gdf":77,"ch":43,"cle":0,"mb":210,"grp":0,"pa":240,"r2":580,"nb_ht":1,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":14,"nb_ch":20,"nb_cle":0,"nb_mb":38},{"c":"Carsac Aillac","insee":"24082","e":"CCPF","en":"Pays de Fénelon","lat":44.8407,"lng":1.2255,"tm":2273,"tc":1993,"ht":168,"rt":0,"cp":1533,"prl":0,"vv":86,"gdf":50,"ch":96,"cle":6,"mb":334,"grp":0,"pa":1619,"r2":610,"nb_ht":4,"nb_cp":3,"nb_prl":0,"nb_vv":1,"nb_gdf":10,"nb_ch":35,"nb_cle":2,"nb_mb":74},{"c":"Jayac","insee":"24215","e":"CCPF","en":"Pays de Fénelon","lat":44.9014,"lng":1.3042,"tm":237,"tc":105,"ht":28,"rt":0,"cp":39,"prl":0,"vv":0,"gdf":13,"ch":14,"cle":0,"mb":143,"grp":0,"pa":39,"r2":75,"nb_ht":1,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":5,"nb_cle":0,"nb_mb":22},{"c":"Nadaillac","insee":"24301","e":"CCPF","en":"Pays de Fénelon","lat":44.9738,"lng":1.3434,"tm":98,"tc":64,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":12,"ch":10,"cle":0,"mb":76,"grp":0,"pa":0,"r2":230,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":5,"nb_cle":0,"nb_mb":9},{"c":"Paulin","insee":"24317","e":"CCPF","en":"Pays de Fénelon","lat":44.9385,"lng":1.3353,"tm":104,"tc":63,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":37,"ch":22,"cle":12,"mb":33,"grp":0,"pa":0,"r2":125,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":7,"nb_ch":8,"nb_cle":3,"nb_mb":5},{"c":"Pechs de l'Espérance","insee":"24314","e":"CCPF","en":"Pays de Fénelon","lat":44.8764,"lng":1.2612,"tm":909,"tc":716,"ht":0,"rt":0,"cp":669,"prl":0,"vv":0,"gdf":8,"ch":5,"cle":8,"mb":219,"grp":0,"pa":669,"r2":750,"nb_ht":0,"nb_cp":3,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":2,"nb_cle":1,"nb_mb":36},{"c":"Prats de Carlux","insee":"24336","e":"CCPF","en":"Pays de Fénelon","lat":44.8519,"lng":1.3001,"tm":1003,"tc":899,"ht":0,"rt":0,"cp":750,"prl":0,"vv":0,"gdf":47,"ch":14,"cle":0,"mb":192,"grp":0,"pa":750,"r2":80,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":7,"nb_ch":7,"nb_cle":0,"nb_mb":33},{"c":"Saint Crépin et Carlucet","insee":"24392","e":"CCPF","en":"Pays de Fénelon","lat":44.8763,"lng":1.3165,"tm":1753,"tc":1483,"ht":0,"rt":0,"cp":1216,"prl":0,"vv":50,"gdf":54,"ch":21,"cle":0,"mb":412,"grp":0,"pa":1266,"r2":240,"nb_ht":0,"nb_cp":2,"nb_prl":0,"nb_vv":1,"nb_gdf":10,"nb_ch":9,"nb_cle":0,"nb_mb":79},{"c":"Saint Geniès","insee":"24412","e":"CCPF","en":"Pays de Fénelon","lat":44.9756,"lng":1.3122,"tm":1579,"tc":927,"ht":21,"rt":0,"cp":609,"prl":0,"vv":424,"gdf":57,"ch":44,"cle":13,"mb":323,"grp":88,"pa":1033,"r2":1170,"nb_ht":1,"nb_cp":1,"nb_prl":0,"nb_vv":2,"nb_gdf":9,"nb_ch":16,"nb_cle":2,"nb_mb":54},{"c":"Saint Julien de Lampon","insee":"24432","e":"CCPF","en":"Pays de Fénelon","lat":44.8187,"lng":1.2887,"tm":867,"tc":774,"ht":0,"rt":0,"cp":672,"prl":0,"vv":0,"gdf":20,"ch":20,"cle":17,"mb":117,"grp":21,"pa":672,"r2":555,"nb_ht":0,"nb_cp":2,"nb_prl":0,"nb_vv":0,"nb_gdf":6,"nb_ch":10,"nb_cle":3,"nb_mb":22},{"c":"Sainte Mondane","insee":"24470","e":"CCPF","en":"Pays de Fénelon","lat":44.8117,"lng":1.231,"tm":260,"tc":68,"ht":0,"rt":0,"cp":48,"prl":0,"vv":0,"gdf":34,"ch":16,"cle":0,"mb":162,"grp":0,"pa":48,"r2":165,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":6,"nb_ch":5,"nb_cle":0,"nb_mb":24},{"c":"Salignac Eyvigues","insee":"24516","e":"CCPF","en":"Pays de Fénelon","lat":44.9401,"lng":1.3267,"tm":1224,"tc":945,"ht":0,"rt":0,"cp":783,"prl":0,"vv":0,"gdf":15,"ch":57,"cle":10,"mb":249,"grp":110,"pa":783,"r2":505,"nb_ht":0,"nb_cp":2,"nb_prl":0,"nb_vv":0,"nb_gdf":3,"nb_ch":24,"nb_cle":2,"nb_mb":51},{"c":"Simeyrols","insee":"24535","e":"CCPF","en":"Pays de Fénelon","lat":44.8509,"lng":1.2387,"tm":170,"tc":65,"ht":0,"rt":0,"cp":24,"prl":0,"vv":0,"gdf":6,"ch":18,"cle":0,"mb":122,"grp":0,"pa":24,"r2":190,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":9,"nb_cle":0,"nb_mb":22},{"c":"Veyrignac","insee":"24574","e":"CCPF","en":"Pays de Fénelon","lat":44.8205,"lng":1.2469,"tm":276,"tc":247,"ht":0,"rt":0,"cp":117,"prl":0,"vv":0,"gdf":18,"ch":6,"cle":6,"mb":129,"grp":0,"pa":117,"r2":210,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":3,"nb_ch":3,"nb_cle":3,"nb_mb":27}];
+const INSEES = "24040,24252,24255,24341,24355,24366,24510,24512,24471,24520,24544,24577,24587,24014,24015,24067,24076,24106,24127,24174,24175,24183,24217,24172,24240,24261,24291,24326,24330,24356,24377,24388,24404,24443,24524,24531,24552,24559,24563,24012,24050,24074,24081,24082,24215,24301,24317,24314,24336,24392,24412,24432,24470,24516,24535,24574";
 
-// Palettes choroplèthes par indicateur (couleurs IPN)
-const PALETTES = {
-  total_marchands:  ['#F7F2EA','#e4a9cd','#c0504d','#7A0010'],  // rose→rouge
-  total_classes:    ['#F7F2EA','#8bcad9','#4f81bd','#1A3D7A'],  // bleu
-  lits_camping:     ['#F7F2EA','#a0ca9a','#9bbb59','#2D5A00'],  // vert
-  lits_plein_air:   ['#F7F2EA','#a0ca9a','#9bbb59','#2D5A00'],
-  lits_hotels:      ['#F7F2EA','#f3946f','#c0504d','#600000'],  // corail→rouge
-  lits_rt:          ['#F7F2EA','#e4a9cd','#9b50a0','#420050'],  // rose→violet
-  lits_prl:         ['#F7F2EA','#a0ca9a','#4f814f','#1A3A1A'],
-  lits_vv:          ['#F7F2EA','#8bcad9','#2D7A8B','#0A3A4A'],
-  lits_meublés:     ['#F7F2EA','#f3946f','#C86030','#703010'],  // corail
-  lits_gdf:         ['#F7F2EA','#a0ca9a','#5A9B5A','#1A4A1A'],
-  lits_ch:          ['#F7F2EA','#e4a9cd','#C070A0','#703050'],
-  lits_cle:         ['#F7F2EA','#95a6b1','#4f6f7f','#1A3040'],  // gris-bleu
-  lits_labellisé:   ['#F7F2EA','#8bcad9','#4f81bd','#1A3D7A'],
-  lits_res2aires:   ['#F7F2EA','#f3946f','#8B5020','#3A1808'],
-};
+const byINSEE = {};
+DATA.forEach(d => { byINSEE[d.insee] = d; });
 
-const MR = 30, NR = 4;
+// ── Métriques ─────────────────────────────────────────────────────────
+const MR = 36, NR = 5;
+let M = 'tm';
 
-let metric = 'total_marchands';
-let allData = [];
-let activeEpcis = new Set(['CCSPN','CCVV','CCPF']);
-
-function filteredData() { return allData.filter(d => activeEpcis.has(d.epci)); }
-
-function toggleEpci(code, btn) {
-  if (activeEpcis.has(code)) {
-    if (activeEpcis.size === 1) return; // garder au moins 1
-    activeEpcis.delete(code);
-    btn.classList.replace('on','off');
-  } else {
-    activeEpcis.add(code);
-    btn.classList.replace('off','on');
-  }
-  rebuild();
-  if (document.getElementById('tab-stats').classList.contains('active')) renderStats();
-}
-let geoLayer = null, circleLayer = null, labelLayer = null, epciLayer = null, communeLayer = null;
-let showChoro = true, showCircles = true, showLabels = false, showEpci = true, showCommunes = false;
-let byINSEE = {};
-
-const map = L.map('map', { center:[44.95,1.10], zoom:11 });
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
-  attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:18
-}).addTo(map);
+// lb = hébergement labellisé (calculé côté JS)
+DATA.forEach(d => {
+  d.lb = (d.gdf||0) + (d.cle||0) + (d.tc||0);
+});
 
 function fmt(n){ return (n||0).toLocaleString('fr-FR'); }
-function gv(d){ return d[metric]||0; }
+function gv(d) { return d[M] || 0; }
+
+// ── Carte Leaflet ─────────────────────────────────────────────────────
+const tileLight = L.tileLayer(
+  'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  {attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a> © <a href="https://carto.com">CARTO</a>',
+   subdomains:'abcd', maxZoom:18}
+);
+const tileDark = L.tileLayer(
+  'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  {attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:18}
+);
+
+const map = L.map('map', {center:[44.917,1.166], zoom:11, layers:[tileLight]});
+
+// ── Groupes de couches ────────────────────────────────────────────────
+const grpCircles  = L.layerGroup().addTo(map);
+const grpLabels   = L.layerGroup().addTo(map);
+let   lyrChoro    = null;
+let   lyrCommunes = null;
+let   lyrEPCI     = null;
+let   geojson     = null;   // contours chargés depuis geo.api.gouv.fr
 
 // ── Tooltip ────────────────────────────────────────────────────────────
-function ttRow(ico, label, nb, lits) {
-  if (!nb && !lits) return '';
-  const v = [nb ? `${fmt(nb)} étab.` : '', lits ? `${fmt(lits)} lits` : ''].filter(Boolean).join(' · ');
-  return `<div class="tt-row"><span class="tt-k">${ico} ${label}</span><span class="tt-v">${v}</span></div>`;
-}
-
-function ttH(d){
-  const ec = EC[d.epci]||'#888';
-  return `<div class="tt">
-    <h4>${d.commune||d.nom}</h4>
-    <span class="tt-tag" style="background:${ec}">${EN[d.epci]||d.epci}</span>
-    <div class="tt-section">Total</div>
-    <div class="tt-row"><span class="tt-k">Lits marchands</span><span class="tt-v">${fmt(d.total_marchands)}</span></div>
-    <div class="tt-row"><span class="tt-k">Lits classés</span><span class="tt-v">${fmt(d.total_classes)}</span></div>
-    <div class="tt-section">Détail</div>
-    ${ttRow('🏩','Hôtels',          d.nb_hotels,   d.lits_hotels)}
-    ${ttRow('🏢','Rés. tourisme',   d.nb_rt,       d.lits_rt)}
-    ${ttRow('⛺','Campings',        d.nb_camping,  d.lits_camping)}
-    ${ttRow('🚐','PRL',             d.nb_prl,      d.lits_prl)}
-    ${ttRow('🏘','Villages vac.',   d.nb_vv,       d.lits_vv)}
-    ${ttRow('🏡','Meublés',         d.nb_meublés,  d.lits_meublés)}
-    ${ttRow('🌿','Gîtes GDF',       d.nb_gdf,      d.lits_gdf)}
-    ${ttRow('☕','Chambres d\'hôtes',d.nb_ch,       d.lits_ch)}
-    ${ttRow('🔑','Clévacances',     d.nb_cle,      d.lits_cle)}
-    ${ttRow('🏕','Gîte étape/grp', d.nb_etape_grp,d.lits_etape_grp)}
-    ${ttRow('🏖','Rés. secondaires',d.nb_res2aires,d.lits_res2aires)}
+function ttHTML(d) {
+  const ec = EC[d.epci||d.e];
+  const ep = EN[d.epci||d.e];
+  const e  = d.epci||d.e;
+  return `<div class="tt-inner">
+    <h4>${d.commune||d.c}</h4>
+    <span class="tt-tag" style="background:${ec}">${ep}</span>
+    <div class="tt-s">Hébergement marchand</div>
+    <div class="tt-row"><span class="tt-k">Total marchands</span><span class="tt-v">${fmt(d.tm)}</span></div>
+    <div class="tt-row"><span class="tt-k">Total classés</span><span class="tt-v">${fmt(d.tc)}</span></div>
+    <div class="tt-s">Détail (lits / établissements)</div>
+    <div class="tt-row"><span class="tt-k">⛺ Campings</span><span class="tt-v">${fmt(d.cp)} / ${d.nb_cp||0} étab.</span></div>
+    <div class="tt-row"><span class="tt-k">🚐 PRL</span><span class="tt-v">${fmt(d.prl)} / ${d.nb_prl||0} étab.</span></div>
+    <div class="tt-row"><span class="tt-k">🏘 Villages vacances</span><span class="tt-v">${fmt(d.vv)} / ${d.nb_vv||0} étab.</span></div>
+    <div class="tt-row"><span class="tt-k">🏩 Hôtels</span><span class="tt-v">${fmt(d.ht)} / ${d.nb_ht||0} étab.</span></div>
+    <div class="tt-row"><span class="tt-k">🏢 Résidences tourisme</span><span class="tt-v">${fmt(d.rt)}</span></div>
+    <div class="tt-row"><span class="tt-k">🏡 Meublés</span><span class="tt-v">${fmt(d.mb)} / ${d.nb_mb||0} étab.</span></div>
+    <div class="tt-row"><span class="tt-k">🌿 Gîtes GDF</span><span class="tt-v">${fmt(d.gdf)} / ${d.nb_gdf||0} étab.</span></div>
+    <div class="tt-row"><span class="tt-k">☕ Chambres d'hôtes</span><span class="tt-v">${fmt(d.ch)} / ${d.nb_ch||0} étab.</span></div>
+    <div class="tt-row"><span class="tt-k">🔑 Clévacances</span><span class="tt-v">${fmt(d.cle)} / ${d.nb_cle||0} étab.</span></div>
+    <div class="tt-row"><span class="tt-k">🏖 Rés. secondaires</span><span class="tt-v">${fmt(d.r2)}</span></div>
   </div>`;
 }
 
-// ── Couleur choroplèthe ────────────────────────────────────────────────
-function choroColor(val, maxVal) {
+// ── Choroplèthe : couleur dégradée dans la teinte EPCI ───────────────
+function choroFill(val, mx, epci) {
   if (!val) return '#F0EDE6';
-  const pal = PALETTES[metric] || PALETTES.total_marchands;
-  const t = Math.min(val / maxVal, 1);
-  const i = Math.floor(t * (pal.length - 1));
-  return pal[Math.min(i, pal.length - 1)];
+  const t   = Math.sqrt(val / mx);          // racine carrée pour linéariser visuellement
+  const col = EC[epci] || '#888';
+  // Interpolation hex vers blanc
+  const r1=parseInt(col.slice(1,3),16), g1=parseInt(col.slice(3,5),16), b1=parseInt(col.slice(5,7),16);
+  const r = Math.round(240 + (r1-240)*t);
+  const g = Math.round(237 + (g1-237)*t);
+  const b = Math.round(230 + (b1-230)*t);
+  return `rgb(${r},${g},${b})`;
 }
 
-// ── Build / rebuild carte ─────────────────────────────────────────────
-function rebuild() {
-  showChoro    = document.getElementById('togChoro').checked;
-  showCircles  = document.getElementById('togCircles').checked;
-  showLabels   = document.getElementById('togLabels').checked;
-  showEpci     = document.getElementById('togEpci').checked;
-  showCommunes = document.getElementById('togCommunes').checked;
+// ── Dessin des cercles ────────────────────────────────────────────────
+function drawCircles() {
+  grpCircles.clearLayers();
+  grpLabels.clearLayers();
+  const mx     = Math.max(...DATA.map(gv), 1);
+  const sorted = [...DATA].sort((a,b) => gv(b)-gv(a));
 
-  if (geoLayer)     { map.removeLayer(geoLayer);     geoLayer     = null; }
-  if (circleLayer)  { map.removeLayer(circleLayer);  circleLayer  = null; }
-  if (labelLayer)   { map.removeLayer(labelLayer);   labelLayer   = null; }
-  if (epciLayer)    { map.removeLayer(epciLayer);    epciLayer    = null; }
-  if (communeLayer) { map.removeLayer(communeLayer); communeLayer = null; }
+  sorted.forEach(d => {
+    const v = gv(d), col = EC[d.e];
+    if (!v) return;
+    const r = NR + Math.sqrt(v/mx)*(MR-NR);
 
-  const fd = filteredData();
-  const mx = Math.max(...fd.map(gv), 1);
-
-  // ── Choroplèthe ──────────────────────────────────────────────────
-  if (showChoro && window._geojson) {
-    geoLayer = L.geoJSON(window._geojson, {
-      style(f) {
-        const d = byINSEE[f.properties.code];
-        const active = d && activeEpcis.has(d.epci);
-        const val = active ? gv(d) : 0;
-        return {
-          fillColor: active ? choroColor(val, mx) : '#E0D8CC',
-          weight: 1.5, color: '#5C4A30',
-          fillOpacity: active ? 0.78 : 0.08,
-        };
-      },
-      onEachFeature(f, layer) {
-        const d = byINSEE[f.properties.code];
-        if (!d) return;
-        layer.bindTooltip(ttH(d), { permanent:false, sticky:true, direction:'top', opacity:1 });
-        layer.on('mouseover', () => layer.setStyle({ weight:2.5, color:'#2A1E10', fillOpacity:.95 }));
-        layer.on('mouseout',  () => geoLayer.resetStyle(layer));
-      }
-    }).addTo(map);
-  }
-
-  // ── Limites EPCI (dissolution turf.js) ───────────────────────────
-  if (showEpci && window._geojson) {
-    try {
-      const geoFiltered = {...window._geojson, features: window._geojson.features.filter(f => activeEpcis.has(f.properties.epci))};
-      const dissolved = turf.dissolve(geoFiltered, { propertyName: 'epci' });
-      epciLayer = L.geoJSON(dissolved, {
-        style(f) {
-          const col = EC[f.properties.epci] || '#888';
-          return { color: col, weight: 3.5, fillOpacity: 0, opacity: 1 };
-        },
-        interactive: false,
-      }).addTo(map);
-    } catch(e) {
-      console.warn('Dissolution EPCI échouée :', e);
-    }
-  }
-
-  // ── Limites communales en pointillés ─────────────────────────────
-  if (showCommunes && window._geojson) {
-    communeLayer = L.geoJSON(window._geojson, {
-      style() {
-        return { fill: false, color: '#5C4A30', weight: 1, dashArray: '4 4', opacity: 0.7 };
-      },
-      interactive: false,
-    }).addTo(map);
-  }
-
-  // ── Cercles proportionnels ────────────────────────────────────────
-  if (showCircles) {
-    const sorted = [...fd].sort((a,b) => gv(b)-gv(a));
-    const markers = [];
-    sorted.forEach(d => {
-      const v = gv(d);
-      if (!v) return;
-      const r = NR + Math.sqrt(v/mx) * (MR - NR);
-      const col = EC[d.epci] || '#888';
-      const cm = L.circleMarker([d._lat, d._lng], {
-        radius: r,
-        fillColor: col,
-        fillOpacity: showChoro ? 0.55 : 0.72,
-        color: col,
-        weight: showChoro ? 1.5 : 2,
-        opacity: 0.95,
-      });
-      cm.bindTooltip(ttH(d), { permanent:false, sticky:true, direction:'top', opacity:1 });
-      if (showLabels) {
-        cm.bindTooltip(
-          `<span style="font-size:9.5px;font-family:'Source Sans 3',sans-serif;font-weight:600;color:#2A1E10;background:rgba(254,250,243,.9);padding:1px 5px;border-radius:3px">${d.commune}</span>`,
-          { permanent:true, direction:'top', offset:[0,-(r+2)], opacity:1 }
-        );
-      }
-      markers.push(cm);
+    const cm = L.circleMarker([d.lat, d.lng], {
+      radius:r, fillColor:col, fillOpacity:0.62,
+      color:col, weight:1.8, opacity:0.9
     });
-    circleLayer = L.layerGroup(markers).addTo(map);
+    cm.bindTooltip(ttHTML(d), {permanent:false,sticky:true,direction:'top',offset:[0,-r],opacity:1});
+    grpCircles.addLayer(cm);
+
+    if (document.getElementById('togLabels').checked) {
+      const lm = L.marker([d.lat,d.lng], {
+        icon: L.divIcon({
+          className:'commune-label',
+          html:`<div style="transform:translateY(-${Math.round(r)+6}px)">${d.c}</div>`,
+          iconSize:[0,0], iconAnchor:[0,0]
+        }),
+        interactive:false
+      });
+      grpLabels.addLayer(lm);
+    }
+  });
+  szLegend(mx); top8(); chips();
+}
+
+// ── Choroplèthe ────────────────────────────────────────────────────────
+function drawChoro() {
+  if (lyrChoro) { map.removeLayer(lyrChoro); lyrChoro=null; }
+  if (!geojson || !document.getElementById('togChoro').checked) return;
+  const mx = Math.max(...DATA.map(gv),1);
+  lyrChoro = L.geoJSON(geojson, {
+    style(f) {
+      const d = byINSEE[f.properties.code];
+      const v = d ? gv(d) : 0;
+      return {
+        fillColor: choroFill(v, mx, d?.e),
+        fillOpacity: 0.65, weight:0.4, color:'#9B9080', opacity:0.5
+      };
+    },
+    onEachFeature(f,layer) {
+      const d = byINSEE[f.properties.code];
+      if (d) layer.bindTooltip(ttHTML(d),{permanent:false,sticky:true,direction:'top',opacity:1});
+      layer.on('mouseover',()=>layer.setStyle({weight:1.5,color:'#2A1E10',fillOpacity:.85}));
+      layer.on('mouseout', ()=>lyrChoro.resetStyle(layer));
+    }
+  }).addTo(map);
+  lyrChoro.bringToBack();
+}
+
+// ── Limites communes ──────────────────────────────────────────────────
+function drawCommunes() {
+  if (lyrCommunes) { map.removeLayer(lyrCommunes); lyrCommunes=null; }
+  if (!geojson || !document.getElementById('togCommunes').checked) return;
+  lyrCommunes = L.geoJSON(geojson, {
+    style(f) {
+      const d = byINSEE[f.properties.code];
+      return {fillColor:'transparent', fillOpacity:0, weight:1, color: EC[d?.e]||'#888', opacity:0.6};
+    },
+    interactive:false
+  }).addTo(map);
+}
+
+// ── Limites EPCI (dissolution via Turf.js) ────────────────────────────
+function drawEPCI() {
+  if (lyrEPCI) { map.removeLayer(lyrEPCI); lyrEPCI=null; }
+  if (!geojson || !document.getElementById('togEPCI').checked) return;
+
+  const layers = [];
+  ['CCSPN','CCVV','CCPF'].forEach(epci => {
+    const feats = geojson.features.filter(f => byINSEE[f.properties.code]?.e === epci);
+    if (!feats.length) return;
+    try {
+      // Union successive des polygones de l'EPCI
+      let union = feats[0];
+      for (let i=1;i<feats.length;i++) {
+        try { union = turf.union(union, feats[i]); } catch(e) {}
+      }
+      layers.push(L.geoJSON(union, {
+        style:{fillColor:'transparent',fillOpacity:0,weight:2.8,color:EC[epci],opacity:0.85,dashArray:'7 3'},
+        interactive:false
+      }));
+    } catch(e) { console.warn('EPCI union failed', epci, e); }
+  });
+
+  lyrEPCI = L.layerGroup(layers).addTo(map);
+}
+
+// ── Redessine tout ────────────────────────────────────────────────────
+function redraw() {
+  if (document.getElementById('togCircles').checked) drawCircles();
+  else { grpCircles.clearLayers(); grpLabels.clearLayers(); }
+  drawChoro();
+  drawCommunes();
+  drawEPCI();
+  if (!document.getElementById('togCircles').checked &&
+      !document.getElementById('togChoro').checked) drawCircles(); // toujours au moins un mode
+}
+
+// ── Fond de carte ────────────────────────────────────────────────────
+function switchTiles() {
+  if (document.getElementById('togDark').checked) {
+    map.removeLayer(tileLight); tileDark.addTo(map);
+  } else {
+    map.removeLayer(tileDark); tileLight.addTo(map);
   }
-
-  // ── Légende & stats ──────────────────────────────────────────────
-  updateLegend(mx);
-  updateTop();
-  updateChips();
 }
 
-function updateLegend(mx) {
-  const pal = PALETTES[metric] || PALETTES.total_marchands;
-  const steps = pal.map((c,i) => ({
-    color: c,
-    label: i === 0 ? '0' : fmt(Math.round(mx * i/(pal.length-1)))
-  }));
-  document.getElementById('legend').innerHTML = `
-    <div style="display:flex;height:10px;border-radius:4px;overflow:hidden;margin-bottom:4px">
-      ${steps.map(s=>`<div style="flex:1;background:${s.color}"></div>`).join('')}
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tl);margin-bottom:8px">
-      ${steps.map(s=>`<span>${s.label}</span>`).join('')}
-    </div>
-    ${Object.entries(EC).map(([code,col])=>`
-    <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
-      <div style="width:22px;height:4px;border-radius:2px;background:${col}"></div>
-      <span style="font-size:10.5px;color:var(--tm)">${EN[code]}</span>
-    </div>`).join('')}
-    <div style="margin-top:4px;font-size:10px;color:var(--tl)">● Taille cercle = valeur · ■ Fond = intensité</div>`;
+// ── Indicateur ────────────────────────────────────────────────────────
+function setM(btn) {
+  document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  M = btn.dataset.m;
+  redraw();
 }
 
-function updateTop() {
-  const s = [...filteredData()].filter(d=>gv(d)>0).sort((a,b)=>gv(b)-gv(a)).slice(0,8);
-  const mx = gv(s[0])||1;
-  document.getElementById('top').innerHTML = s.map((d,i)=>{
-    const col = EC[d.epci]||'#888';
-    const pct = Math.round(gv(d)/mx*100);
-    return `<div class="stat-row">
-      <div class="stat-rank" style="background:${i<3?col:'#E8E0D0'};color:${i<3?'#fff':'#5C4A30'}">${i+1}</div>
-      <div style="flex:1;overflow:hidden">
-        <div class="stat-name" title="${d.commune}">${d.commune}</div>
-        <div style="height:3px;background:#E8E0D0;border-radius:2px;margin-top:2px">
-          <div style="height:100%;width:${pct}%;background:${col};border-radius:2px;transition:width .3s"></div>
-        </div>
-      </div>
-      <div class="stat-val">${fmt(gv(d))}</div>
-      <div class="dot" style="background:${col}"></div>
+// ── Légende ───────────────────────────────────────────────────────────
+function szLegend(mx) {
+  document.getElementById('szRow').innerHTML = [0.25,0.5,1].map(f=>{
+    const r = NR + Math.sqrt(f)*(MR-NR);
+    return `<div style="text-align:center">
+      <div class="sz-c" style="width:${r*2}px;height:${r*2}px;margin:0 auto"></div>
+      <div class="sz-l">${fmt(Math.round(mx*f))}</div>
     </div>`;
   }).join('');
 }
-
-function updateChips() {
-  const t = {CCSPN:0,CCVV:0,CCPF:0};
-  filteredData().forEach(d => { if(d.epci in t) t[d.epci]+=gv(d); });
-  const g = Object.values(t).reduce((a,b)=>a+b,0);
-  const ab = {CCSPN:'Sarlat',CCVV:'Vallée',CCPF:'Fénelon'};
-  document.getElementById('chips').innerHTML = Object.entries(t).map(([e,v])=>{
-    const pct = g>0?Math.round(v/g*100):0;
-    const col = EC[e];
-    return `<span class="chip" style="background:${col}22;color:${col};border:1px solid ${col}55">${ab[e]}: ${fmt(v)} (${pct}%)</span>`;
+function top8() {
+  const s=[...DATA].filter(d=>gv(d)>0).sort((a,b)=>gv(b)-gv(a)).slice(0,8);
+  const mx=gv(s[0])||1;
+  document.getElementById('top8').innerHTML=s.map((d,i)=>{
+    const col=EC[d.e],pct=Math.round(gv(d)/mx*100);
+    return `<div class="stat">
+      <div class="rk" style="background:${i<3?col:'#E8E0D0'};color:${i<3?'#fff':'#5C4A30'}">${i+1}</div>
+      <div style="flex:1;overflow:hidden">
+        <div class="sn" title="${d.c}">${d.c}</div>
+        <div style="height:3px;background:#E8E0D0;border-radius:2px;margin-top:2px">
+          <div style="height:100%;width:${pct}%;background:${col};border-radius:2px"></div>
+        </div>
+      </div>
+      <div class="sv">${fmt(gv(d))}</div>
+      <div class="sd" style="background:${col}"></div>
+    </div>`;
   }).join('');
 }
-
-function setM(btn) {
-  document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  metric = btn.dataset.m;
-  rebuild();
+function chips() {
+  const t={CCSPN:0,CCVV:0,CCPF:0};
+  DATA.forEach(d=>t[d.e]+=gv(d));
+  const g=Object.values(t).reduce((a,b)=>a+b,0);
+  document.getElementById('chips').innerHTML=
+    [['CCSPN','Sarlat'],['CCVV','Vallée'],['CCPF','Fénelon']].map(([e,n])=>{
+      const v=t[e],p=g?Math.round(v/g*100):0,col=EC[e];
+      return `<span class="chip" style="background:${col}22;color:${col};border:1px solid ${col}44">${n}: ${fmt(v)} (${p}%)</span>`;
+    }).join('');
 }
 
-// ── Coordonnées de repli (centroïdes approchés) ───────────────────────
-const FALLBACK_COORDS = {
-  "24012":[44.952,1.282],"24050":[44.922,1.385],"24074":[44.818,1.232],
-  "24081":[44.840,1.268],"24082":[44.829,1.215],"24215":[44.886,1.288],
-  "24301":[44.968,1.332],"24317":[44.928,1.330],"24314":[44.878,1.255],
-  "24336":[44.852,1.292],"24392":[44.868,1.302],"24412":[44.968,1.298],
-  "24432":[44.810,1.278],"24470":[44.800,1.218],"24516":[44.932,1.312],
-  "24535":[44.843,1.228],"24574":[44.813,1.238],"24040":[44.833,1.143],
-  "24252":[44.868,1.172],"24255":[44.872,1.122],"24341":[44.892,1.202],
-  "24355":[44.821,1.168],"24366":[44.872,1.082],"24510":[44.818,1.128],
-  "24512":[44.843,1.188],"24471":[44.898,1.212],"24520":[44.888,1.218],
-  "24544":[44.921,1.133],"24577":[44.832,1.162],"24587":[44.842,1.198],
-  "24014":[45.012,1.272],"24015":[44.922,1.038],"24067":[44.920,0.928],
-  "24076":[44.902,1.008],"24106":[44.948,1.178],"24127":[45.042,1.328],
-  "24174":[44.992,1.152],"24175":[45.032,1.268],"24183":[44.972,1.068],
-  "24217":[44.932,1.022],"24172":[44.942,1.018],"24240":[44.882,0.882],
-  "24261":[44.942,1.072],"24291":[45.062,1.162],"24326":[44.982,1.082],
-  "24330":[44.988,1.108],"24356":[45.008,1.032],"24377":[44.918,1.048],
-  "24388":[44.912,0.972],"24404":[44.958,1.032],"24443":[44.998,1.132],
-  "24524":[44.952,1.092],"24531":[45.032,1.138],"24552":[45.018,1.138],
-  "24559":[44.972,1.062],"24563":[44.998,1.198],
-};
-
-// ── Chargement ─────────────────────────────────────────────────────────
-// ── Centroïde d'un polygone GeoJSON ───────────────────────────────────
-function centroid(feature) {
+// ── Chargement GeoJSON client-side (contours depuis geo.api.gouv.fr) ─
+async function loadGeoJSON() {
+  const url = `https://geo.api.gouv.fr/communes?code=${INSEES}&geometry=contour&format=geojson&fields=code,nom`;
   try {
-    const coords = feature.geometry.type === 'Polygon'
-      ? feature.geometry.coordinates[0]
-      : feature.geometry.coordinates[0][0];
-    const lats = coords.map(c => c[1]);
-    const lngs = coords.map(c => c[0]);
-    return [(Math.min(...lats)+Math.max(...lats))/2, (Math.min(...lngs)+Math.max(...lngs))/2];
-  } catch(e) { return null; }
-}
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('HTTP '+resp.status);
+    geojson = await resp.json();
 
-async function init() {
-  // ── Étape 0 : données summary (onglet Statistiques) ────────────────
-  fetch(`${API}/api/summary`).then(r=>r.json()).then(d=>{ summaryData=d; }).catch(()=>{});
-
-  // ── Étape 1 : données hébergement ──────────────────────────────────
-  try {
-    const resp = await fetch(`${API}/api/communes`);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status} sur /api/communes`);
-    allData = await resp.json();
-    allData.forEach(d => {
-      const fb = FALLBACK_COORDS[d.insee] || [44.9, 1.1];
-      d._lat = fb[0]; d._lng = fb[1];
-      byINSEE[d.insee] = d;
+    // Activer les toggles qui dépendent du GeoJSON
+    ['togChoro','togCommunes','togEPCI'].forEach(id=>{
+      document.getElementById(id).disabled = false;
     });
+    document.getElementById('geoStatus').textContent = '✓ Contours chargés';
+    document.getElementById('geoStatus').style.color = '#9bbb59';
+
+    // Activer choroplèthe + limites EPCI par défaut
+    document.getElementById('togEPCI').checked = true;
+    document.getElementById('togCommunes').checked = true;
+    redraw();
   } catch(e) {
-    document.getElementById('loading').style.display = 'none';
-    const el = document.getElementById('error');
-    el.style.display = 'block';
-    el.innerHTML = `
-      <p><strong>Serveur non joignable</strong></p>
-      <p style="margin-top:8px;font-size:12px">
-        Ouvrez un Terminal dans le dossier <code>ipn_hebergement</code> et lancez :<br><br>
-        <code style="background:#f0f0f0;padding:4px 8px;border-radius:4px">
-          source .venv/bin/activate && uvicorn app.main:app --reload
-        </code>
-      </p>
-      <p style="margin-top:8px;font-size:11px;color:#888">Erreur : ${e.message}</p>`;
-    return;
-  }
-
-  // ── Étape 2 : afficher les cercles immédiatement ───────────────────
-  document.getElementById('loading').innerHTML =
-    '<div class="spinner"></div><p>Chargement des contours…</p>';
-  rebuild();   // Cercles visibles pendant que le GeoJSON charge
-
-  const bounds_lats = allData.map(d=>d._lat), bounds_lngs = allData.map(d=>d._lng);
-  map.fitBounds([
-    [Math.min(...bounds_lats), Math.min(...bounds_lngs)],
-    [Math.max(...bounds_lats), Math.max(...bounds_lngs)]
-  ], {padding:[20,20]});
-
-  // ── Étape 3 : charger le GeoJSON (choroplèthe) ─────────────────────
-  try {
-    const gr = await fetch(`${API}/api/geojson`);
-    if (!gr.ok) throw new Error(`HTTP ${gr.status}`);
-    window._geojson = await gr.json();
-
-    // Mettre à jour les centroïdes depuis les vrais polygones
-    window._geojson.features.forEach(f => {
-      const d = byINSEE[f.properties.code];
-      if (!d) return;
-      const c = centroid(f);
-      if (c) { d._lat = c[0]; d._lng = c[1]; }
-      // Copier les propriétés hébergement déjà enrichies par l'API
-      Object.assign(d, f.properties);
-    });
-
-    document.getElementById('loading').style.display = 'none';
-    rebuild();  // Reconstruire avec choroplèthe complet
-  } catch(e) {
-    document.getElementById('loading').style.display = 'none';
-    // Pas grave : les cercles sont déjà affichés, on retire juste le choroplèthe
-    document.getElementById('togChoro').checked = false;
-    document.getElementById('togChoro').disabled = true;
-    rebuild();
-    console.warn('GeoJSON non disponible (choroplèthe désactivé) :', e.message);
+    document.getElementById('geoStatus').textContent = '⚠ Contours non disponibles (hors ligne ?)';
+    console.warn('GeoJSON load failed:', e);
   }
 }
 
-// ── Onglets ────────────────────────────────────────────────────────────
-let summaryData = null;
-
-function switchTab(tab) {
-  const isCarto = tab === 'carto';
-  document.getElementById('tab-carto').classList.toggle('active', isCarto);
-  document.getElementById('tab-stats').classList.toggle('active', !isCarto);
-  document.querySelector('.main').style.display = isCarto ? 'flex' : 'none';
-  document.getElementById('stats-view').style.display = isCarto ? 'none' : 'block';
-  if (!isCarto) renderStats();
-}
-
-// ── Statistiques ───────────────────────────────────────────────────────
-const TYPES = [
-  { key:'lits_hotels',    nb:'nb_hotels',    ico:'🏩', label:'Hôtels' },
-  { key:'lits_rt',        nb:'nb_rt',        ico:'🏢', label:'Résidences de tourisme' },
-  { key:'lits_camping',   nb:'nb_camping',   ico:'⛺', label:'Campings' },
-  { key:'lits_prl',       nb:'nb_prl',       ico:'🚐', label:'PRL' },
-  { key:'lits_vv',        nb:'nb_vv',        ico:'🏘', label:'Villages vacances' },
-  { key:'lits_meublés',   nb:'nb_meublés',   ico:'🏡', label:'Meublés de tourisme' },
-  { key:'lits_gdf',       nb:'nb_gdf',       ico:'🌿', label:'Gîtes de France' },
-  { key:'lits_ch',        nb:'nb_ch',        ico:'☕', label:'Chambres d\'hôtes' },
-  { key:'lits_cle',       nb:'nb_cle',       ico:'🔑', label:'Clévacances' },
-  { key:'lits_etape_grp', nb:'nb_etape_grp', ico:'🏕', label:'Gîte étape / accueil groupe' },
-  { key:'lits_res2aires', nb:'nb_res2aires', ico:'🏖', label:'Résidences secondaires' },
-];
-const EPCIS = ['CCSPN','CCVV','CCPF'];
-
-function renderStats() {
-  if (!summaryData) { document.getElementById('stats-content').textContent = 'Données non disponibles.'; return; }
-
-  const by = {};
-  summaryData.forEach(s => { by[s.epci] = s; });
-  const ipn = by['IPN'];
-
-  function stk(key) {
-    const vals = EPCIS.map(e => by[e]?.[key] || 0);
-    const tot = vals.reduce((a,b)=>a+b,0);
-    if (!tot) return `<div class="stk" style="background:#EDE5D5;border-radius:5px"></div>`;
-    return `<div class="stk">${EPCIS.map((e,i)=>`<div style="width:${vals[i]/tot*100}%;background:${EC[e]}"></div>`).join('')}</div>`;
-  }
-
-  function cell(epci, key, nbKey, rowTot) {
-    if (!activeEpcis.has(epci)) return `<td style="opacity:.25"><span class="p">—</span></td>`;
-    const v = by[epci]?.[key] || 0;
-    const nb = by[epci]?.[nbKey] || 0;
-    const pct = rowTot > 0 ? Math.round(v/rowTot*100) : 0;
-    if (!v) return `<td><span class="p">—</span></td>`;
-    return `<td>
-      <div class="v">${fmt(v)}</div>
-      <div class="p">${pct} %</div>
-      ${nb ? `<div class="n">${fmt(nb)} étab.</div>` : ''}
-    </td>`;
-  }
-
-  function row(t, hiClass='') {
-    const rowTot = ipn?.[t.key] || 0;
-    return `<tr class="${hiClass}">
-      <td>${t.ico} ${t.label}</td>
-      <td class="bar-th">${stk(t.key)}</td>
-      ${EPCIS.map(e => cell(e, t.key, t.nb, rowTot)).join('')}
-      <td><div class="v">${fmt(rowTot)}</div></td>
-    </tr>`;
-  }
-
-  document.getElementById('stats-content').innerHTML = `
-    <table class="st">
-      <thead><tr>
-        <th>Type d'hébergement</th>
-        <th class="bar-th">Répartition</th>
-        ${EPCIS.map(e=>`<th style="color:${EC[e]};opacity:${activeEpcis.has(e)?1:.3}">${EN[e]}</th>`).join('')}
-        <th>Total IPN</th>
-      </tr></thead>
-      <tbody>
-        <tr class="sep"><td colspan="6">Totaux synthétiques — lits</td></tr>
-        ${row({key:'total_marchands',nb:null,ico:'🏨',label:'Total lits marchands'},'hi')}
-        ${row({key:'total_classes',  nb:null,ico:'⭐',label:'Total lits classés'},  'hi')}
-        <tr class="sep"><td colspan="6">Hébergement marchand — détail</td></tr>
-        ${TYPES.slice(0,10).map(t=>row(t)).join('')}
-        <tr class="sep"><td colspan="6">Hébergement non marchand</td></tr>
-        ${TYPES.slice(10).map(t=>row(t)).join('')}
-      </tbody>
-    </table>`;
-}
-
-init();
+// ── Init ──────────────────────────────────────────────────────────────
+drawCircles();                   // Affichage immédiat des cercles
+loadGeoJSON();                   // Contours en arrière-plan
 </script>
 </body>
 </html>
