@@ -38,6 +38,11 @@ header h1{font-family:'Playfair Display',Georgia,serif;font-size:15px;font-weigh
 .tog-sl::before{content:'';position:absolute;width:12px;height:12px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.2s}
 .tog input:checked+.tog-sl{background:var(--corail)}
 .tog input:checked+.tog-sl::before{transform:translateX(16px)}
+.epci-btn{display:block;width:100%;text-align:left;padding:6px 10px;margin-bottom:4px;border-radius:5px;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600;transition:all .15s}
+.epci-btn[data-e="CCSPN"]{background:rgba(79,129,189,.15);color:#4f81bd;border:1.5px solid #4f81bd}
+.epci-btn[data-e="CCVV"] {background:rgba(155,187,89,.15);color:#9bbb59;border:1.5px solid #9bbb59}
+.epci-btn[data-e="CCPF"] {background:rgba(192,80,77,.15);color:#c0504d;border:1.5px solid #c0504d}
+.epci-btn.off{opacity:.35;text-decoration:line-through}
 .tog input:disabled+.tog-sl{opacity:.35;cursor:not-allowed}
 .geo-st{font-size:9.5px;color:var(--tl);margin-top:5px;font-style:italic}
 .stat{display:flex;align-items:center;padding:4px 0;border-bottom:1px solid #EDE5D5;font-size:11px}
@@ -78,6 +83,12 @@ header h1{font-family:'Playfair Display',Georgia,serif;font-size:15px;font-weigh
 </header>
 <div class="layout">
   <div class="sidebar">
+    <div class="sec">
+      <h3>EPCI</h3>
+      <button class="epci-btn on" data-e="CCSPN" onclick="toggleEPCI(this)">● Sarlat-Périgord Noir</button>
+      <button class="epci-btn on" data-e="CCVV"  onclick="toggleEPCI(this)">● Vallée de l'Homme</button>
+      <button class="epci-btn on" data-e="CCPF"  onclick="toggleEPCI(this)">● Pays de Fénelon</button>
+    </div>
     <div class="sec">
       <h3>Indicateur</h3>
       <button class="mbtn on" data-m="tm"  onclick="setM(this)"><span class="ico">🏨</span>Total lits marchands</button>
@@ -122,6 +133,13 @@ header h1{font-family:'Playfair Display',Georgia,serif;font-size:15px;font-weigh
 </div>
 <script>
 const EC={CCSPN:'#4f81bd',CCVV:'#9bbb59',CCPF:'#c0504d'};
+let activeEPCI=new Set(['CCSPN','CCVV','CCPF']);
+function toggleEPCI(btn){
+  const e=btn.dataset.e;
+  if(activeEPCI.has(e)){if(activeEPCI.size>1){activeEPCI.delete(e);btn.classList.add('off');}}
+  else{activeEPCI.add(e);btn.classList.remove('off');}
+  redraw();
+}
 const EN={CCSPN:'Sarlat-Périgord Noir',CCVV:"Vallée de l'Homme",CCPF:'Pays de Fénelon'};
 const MR=36,NR=5;
 let M='tm';
@@ -222,11 +240,9 @@ function drawChoro(){
 function drawComm(){
   if(lComm){map.removeLayer(lComm);lComm=null;}
   if(!geojson||!document.getElementById('togComm').checked)return;
-  lComm=L.geoJSON(geojson,{
-    style(f){
-      const d=byINSEE[f.properties.code];
-      return{fillColor:'transparent',fillOpacity:0,weight:1,color:EC[d?.e]||'#888',opacity:.65};
-    },
+  const feats=geojson.features.filter(f=>activeEPCI.has(byINSEE[f.properties.code]?.e));
+  lComm=L.geoJSON({type:'FeatureCollection',features:feats},{
+    style:{fillColor:'transparent',fillOpacity:0,weight:0.8,color:'#8B7355',opacity:0.55},
     interactive:false
   }).addTo(map);
 }
@@ -237,13 +253,17 @@ function drawEPCI(){
   if(!geojson||!document.getElementById('togEPCI').checked)return;
   const layers=[];
   ['CCSPN','CCVV','CCPF'].forEach(epci=>{
+    if(!activeEPCI.has(epci))return;
     const feats=geojson.features.filter(f=>byINSEE[f.properties.code]?.e===epci);
     if(!feats.length)return;
-    layers.push(L.geoJSON({type:'FeatureCollection',features:feats},{
-      style:{fillColor:'transparent',fillOpacity:0,
-             weight:2.8,color:EC[epci],opacity:.9,dashArray:'7 3'},
-      interactive:false
-    }));
+    try{
+      let u=feats[0];
+      for(let i=1;i<feats.length;i++){try{u=turf.union(u,feats[i]);}catch(e){}}
+      layers.push(L.geoJSON(u,{
+        style:{fillColor:'transparent',fillOpacity:0,weight:2.8,color:EC[epci],opacity:.9,dashArray:'7 3'},
+        interactive:false
+      }));
+    }catch(e){console.warn('EPCI union',epci,e);}
   });
   lEPCI=L.layerGroup(layers).addTo(map);
 }
@@ -274,7 +294,7 @@ function szLegend(mx){
   }).join('');
 }
 function top8(){
-  const s=[...DATA].filter(d=>gv(d)>0).sort((a,b)=>gv(b)-gv(a)).slice(0,8);
+  const s=[...DATA].filter(d=>gv(d)>0&&activeEPCI.has(d.e)).sort((a,b)=>gv(b)-gv(a)).slice(0,8);
   const mx=gv(s[0])||1;
   document.getElementById('top8').innerHTML=s.map((d,i)=>{
     const col=EC[d.e],pct=Math.round(gv(d)/mx*100);
@@ -283,7 +303,7 @@ function top8(){
 }
 function chips(){
   const t={CCSPN:0,CCVV:0,CCPF:0};
-  DATA.forEach(d=>t[d.e]+=gv(d));
+  DATA.filter(d=>activeEPCI.has(d.e)).forEach(d=>t[d.e]+=gv(d));
   const g=Object.values(t).reduce((a,b)=>a+b,0);
   document.getElementById('chips').innerHTML=
     [['CCSPN','Sarlat'],['CCVV','Vallée'],['CCPF','Fénelon']].map(([e,n])=>{
