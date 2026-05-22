@@ -207,7 +207,7 @@ def get_summary(communes: list[dict]) -> list[dict]:
     # Ajouter total IPN
     ipn = {
         "epci": "IPN",
-        "epci_name": "Itinéraire du Périgord Noir (total)",
+        "epci_name": "Intense Périgord Noir (total)",
         "nb_communes": sum(s["nb_communes"] for s in summaries.values()),
         **{m: sum(s[m] for s in summaries.values()) for m in metrics},
     }

@@ -1,6 +1,6 @@
 # IPN Hébergement — API REST
 
-API de l'offre en hébergement touristique de l'**Itinéraire du Périgord Noir** (Dordogne, 24).  
+API de l'offre en hébergement touristique de l'**Intense Périgord Noir** (Dordogne, 24).  
 Couvre 56 communes sur 3 EPCI : Sarlat-Périgord Noir · Vallée de l'Homme · Pays de Fénelon.
 
 ---

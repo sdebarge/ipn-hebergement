@@ -5,4 +5,5 @@ __pycache__/
 data/.DS_Store
 .claude/
 data/geo/
-data/geo/
+.uvicorn.pid
+.uvicorn.log
