@@ -172,12 +172,14 @@ def geojson():
         raise HTTPException(503, "GeoJSON non disponible — placez un shapefile dans data/geo/")
 
     by_ins = {c["insee"]: c for c in get_data()}
+    REMAP = {"24364": "24127", "24325": "24314"}
     features_out = []
     for f in geo.get("features", []):
-        insee = f["properties"].get("code")
-        c = by_ins.get(insee)
-        if not c:
-            continue
+        code = f["properties"].get("code", "")
+        if code in REMAP:
+            code = REMAP[code]
+            f["properties"]["code"] = code
+        c = by_ins.get(code, {})
         f["properties"].update({
             "epci": c.get("epci",""), "epci_name": c.get("epci_name",""),
             "commune": c.get("commune",""),
