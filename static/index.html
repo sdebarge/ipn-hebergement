@@ -10,9 +10,9 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Source+Sans+3:wght@300;400;600&display=swap');
 :root{
-  --ccspn:#4f81bd; --ccvv:#9bbb59; --ccpf:#c0504d;
-  --corail:#f3946f; --bleu:#8bcad9; --vert:#a0ca9a; --rose:#e4a9cd; --gris:#95a6b1;
-  --bg:#F7F2EA; --panel:#FEFAF3; --bd:#D4C4A0; --td:#2A1E10; --tm:#5C4A30; --tl:#8B7355;
+  --ccspn:#4f81bd;--ccvv:#9bbb59;--ccpf:#c0504d;
+  --corail:#f3946f;--bleu:#8bcad9;--vert:#a0ca9a;
+  --bg:#F7F2EA;--panel:#FEFAF3;--bd:#D4C4A0;--td:#2A1E10;--tm:#5C4A30;--tl:#8B7355;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;overflow:hidden;font-family:'Source Sans 3',system-ui,sans-serif;background:var(--bg);color:var(--td)}
@@ -38,8 +38,8 @@ header h1{font-family:'Playfair Display',Georgia,serif;font-size:15px;font-weigh
 .tog-sl::before{content:'';position:absolute;width:12px;height:12px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.2s}
 .tog input:checked+.tog-sl{background:var(--corail)}
 .tog input:checked+.tog-sl::before{transform:translateX(16px)}
-.tog input:disabled+.tog-sl{opacity:.4;cursor:not-allowed}
-.geo-status{font-size:9.5px;color:var(--tl);margin-top:4px;font-style:italic}
+.tog input:disabled+.tog-sl{opacity:.35;cursor:not-allowed}
+.geo-st{font-size:9.5px;color:var(--tl);margin-top:5px;font-style:italic}
 .stat{display:flex;align-items:center;padding:4px 0;border-bottom:1px solid #EDE5D5;font-size:11px}
 .stat:last-child{border-bottom:none}
 .rk{width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-right:6px}
@@ -54,19 +54,14 @@ header h1{font-family:'Playfair Display',Georgia,serif;font-size:15px;font-weigh
 #map{flex:1;z-index:1}
 .leaflet-tooltip{background:#2A1E10!important;border:none!important;border-radius:8px!important;padding:0!important;box-shadow:0 4px 20px rgba(0,0,0,.4)!important}
 .leaflet-tooltip::before{display:none!important}
-.tt-inner{padding:11px 13px;font-family:'Source Sans 3',system-ui,sans-serif;font-size:11.5px;min-width:215px;color:#F7F2EA}
-.tt-inner h4{font-family:'Playfair Display',Georgia,serif;font-size:13px;margin-bottom:4px}
+.tt{padding:11px 13px;font-family:'Source Sans 3',system-ui,sans-serif;font-size:11.5px;min-width:215px;color:#F7F2EA}
+.tt h4{font-family:'Playfair Display',Georgia,serif;font-size:13px;margin-bottom:4px}
 .tt-tag{font-size:9px;font-weight:700;padding:2px 6px;border-radius:9px;margin-bottom:7px;display:inline-block}
 .tt-row{display:flex;justify-content:space-between;padding:1.5px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:10.5px}
 .tt-row:last-child{border-bottom:none}
 .tt-k{color:#C4B896}.tt-v{font-weight:700}
 .tt-s{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#7B6B55;margin:5px 0 2px}
-.commune-label div{
-  font-family:'Source Sans 3',system-ui,sans-serif;font-size:10px;font-weight:600;
-  color:#2A1E10;white-space:nowrap;pointer-events:none;
-  text-shadow:1px 1px 2px rgba(255,255,255,.95),-1px -1px 2px rgba(255,255,255,.95),
-              1px -1px 2px rgba(255,255,255,.95),-1px 1px 2px rgba(255,255,255,.95);
-}
+.lbl div{font-family:'Source Sans 3',system-ui,sans-serif;font-size:10px;font-weight:600;color:#2A1E10;white-space:nowrap;pointer-events:none;text-shadow:1px 1px 2px rgba(255,255,255,.95),-1px -1px 2px rgba(255,255,255,.95),1px -1px 2px rgba(255,255,255,.95),-1px 1px 2px rgba(255,255,255,.95)}
 </style>
 </head>
 <body>
@@ -102,318 +97,239 @@ header h1{font-family:'Playfair Display',Georgia,serif;font-size:15px;font-weigh
     </div>
     <div class="sec">
       <h3>Affichage</h3>
-      <div class="tog-row">
-        <span class="tog-lbl">Choroplèthe</span>
-        <label class="tog"><input type="checkbox" id="togChoro" onchange="redraw()" disabled><div class="tog-sl"></div></label>
-      </div>
-      <div class="tog-row">
-        <span class="tog-lbl">Cercles proportionnels</span>
-        <label class="tog"><input type="checkbox" id="togCircles" checked onchange="redraw()"><div class="tog-sl"></div></label>
-      </div>
-      <div class="tog-row">
-        <span class="tog-lbl">Limites communes</span>
-        <label class="tog"><input type="checkbox" id="togCommunes" onchange="redraw()" disabled><div class="tog-sl"></div></label>
-      </div>
-      <div class="tog-row">
-        <span class="tog-lbl">Limites EPCI</span>
-        <label class="tog"><input type="checkbox" id="togEPCI" onchange="redraw()" disabled><div class="tog-sl"></div></label>
-      </div>
-      <div class="tog-row">
-        <span class="tog-lbl">Noms des communes</span>
-        <label class="tog"><input type="checkbox" id="togLabels" onchange="redraw()"><div class="tog-sl"></div></label>
-      </div>
-      <div class="tog-row">
-        <span class="tog-lbl">Fond sombre</span>
-        <label class="tog"><input type="checkbox" id="togDark" onchange="switchTiles()"><div class="tog-sl"></div></label>
-      </div>
-      <div class="geo-status" id="geoStatus">⏳ Chargement des contours…</div>
+      <div class="tog-row"><span class="tog-lbl">Choroplèthe</span>
+        <label class="tog"><input type="checkbox" id="togChoro" onchange="redraw()" disabled><div class="tog-sl"></div></label></div>
+      <div class="tog-row"><span class="tog-lbl">Cercles proportionnels</span>
+        <label class="tog"><input type="checkbox" id="togCircles" checked onchange="redraw()"><div class="tog-sl"></div></label></div>
+      <div class="tog-row"><span class="tog-lbl">Limites communes</span>
+        <label class="tog"><input type="checkbox" id="togComm" onchange="redraw()" disabled><div class="tog-sl"></div></label></div>
+      <div class="tog-row"><span class="tog-lbl">Limites EPCI</span>
+        <label class="tog"><input type="checkbox" id="togEPCI" onchange="redraw()" disabled><div class="tog-sl"></div></label></div>
+      <div class="tog-row"><span class="tog-lbl">Noms des communes</span>
+        <label class="tog"><input type="checkbox" id="togLabels" onchange="redraw()"><div class="tog-sl"></div></label></div>
+      <div class="tog-row"><span class="tog-lbl">Fond sombre</span>
+        <label class="tog"><input type="checkbox" id="togDark" onchange="switchTiles()"><div class="tog-sl"></div></label></div>
+      <div class="geo-st" id="geoSt">⏳ Chargement des contours…</div>
     </div>
     <div class="sec">
       <h3>Légende — taille des cercles</h3>
       <div id="szRow" class="sz-row"></div>
       <div class="chips" id="chips"></div>
     </div>
-    <div class="sec" style="flex:1">
-      <h3>Top 8 communes</h3>
-      <div id="top8"></div>
-    </div>
+    <div class="sec" style="flex:1"><h3>Top 8 communes</h3><div id="top8"></div></div>
   </div>
   <div id="map"></div>
 </div>
 <script>
-// ── Couleurs IPN ──────────────────────────────────────────────────────
-const EC = {CCSPN:'#4f81bd', CCVV:'#9bbb59', CCPF:'#c0504d'};
-const EN = {CCSPN:'Sarlat-Périgord Noir', CCVV:"Vallée de l'Homme", CCPF:'Pays de Fénelon'};
+const EC={CCSPN:'#4f81bd',CCVV:'#9bbb59',CCPF:'#c0504d'};
+const EN={CCSPN:'Sarlat-Périgord Noir',CCVV:"Vallée de l'Homme",CCPF:'Pays de Fénelon'};
+const MR=36,NR=5;
+let M='tm';
+const DATA=[{"c":"Beynac et Cazenac","insee":"24040","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.836,"lng":1.1484,"tm":771,"tc":583,"ht":41,"rt":0,"cp":396,"prl":0,"vv":0,"gdf":45,"ch":53,"cle":0,"mb":236,"grp":0,"pa":396,"r2":340,"nb_ht":2,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":11,"nb_ch":21,"nb_cle":0,"nb_mb":44},{"c":"Marcillac St Quentin","insee":"24252","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8761,"lng":1.1791,"tm":764,"tc":513,"ht":0,"rt":0,"cp":402,"prl":0,"vv":0,"gdf":64,"ch":36,"cle":0,"mb":262,"grp":0,"pa":402,"r2":0,"nb_ht":0,"nb_cp":2,"nb_prl":0,"nb_vv":0,"nb_gdf":10,"nb_ch":13,"nb_cle":0,"nb_mb":41},{"c":"Marquay","insee":"24255","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8685,"lng":1.1244,"tm":496,"tc":375,"ht":33,"rt":0,"cp":0,"prl":0,"vv":222,"gdf":26,"ch":48,"cle":0,"mb":167,"grp":0,"pa":222,"r2":370,"nb_ht":1,"nb_cp":0,"nb_prl":0,"nb_vv":1,"nb_gdf":5,"nb_ch":16,"nb_cle":0,"nb_mb":33},{"c":"Proissans","insee":"24341","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.9002,"lng":1.2133,"tm":1289,"tc":1121,"ht":0,"rt":0,"cp":881,"prl":0,"vv":0,"gdf":64,"ch":49,"cle":8,"mb":287,"grp":0,"pa":881,"r2":170,"nb_ht":0,"nb_cp":3,"nb_prl":0,"nb_vv":0,"nb_gdf":11,"nb_ch":19,"nb_cle":2,"nb_mb":55},{"c":"Roque Gageac (La)","insee":"24355","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8259,"lng":1.1681,"tm":1578,"tc":1126,"ht":184,"rt":0,"cp":978,"prl":0,"vv":0,"gdf":107,"ch":44,"cle":0,"mb":253,"grp":12,"pa":978,"r2":335,"nb_ht":4,"nb_cp":3,"nb_prl":0,"nb_vv":0,"nb_gdf":22,"nb_ch":18,"nb_cle":0,"nb_mb":44},{"c":"Saint André d'Allas","insee":"24366","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8721,"lng":1.0867,"tm":1476,"tc":1277,"ht":0,"rt":0,"cp":1179,"prl":0,"vv":0,"gdf":27,"ch":40,"cle":4,"mb":226,"grp":0,"pa":1179,"r2":305,"nb_ht":0,"nb_cp":4,"nb_prl":0,"nb_vv":0,"nb_gdf":6,"nb_ch":16,"nb_cle":1,"nb_mb":49},{"c":"Saint Vincent de Cosse","insee":"24510","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.817,"lng":1.1356,"tm":647,"tc":364,"ht":80,"rt":0,"cp":186,"prl":0,"vv":0,"gdf":10,"ch":51,"cle":0,"mb":320,"grp":0,"pa":186,"r2":205,"nb_ht":1,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":19,"nb_cle":0,"nb_mb":60},{"c":"Saint Vincent le Paluel","insee":"24512","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8508,"lng":1.1937,"tm":131,"tc":72,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":26,"ch":13,"cle":6,"mb":86,"grp":0,"pa":0,"r2":145,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":6,"nb_ch":5,"nb_cle":1,"nb_mb":15},{"c":"Sainte Nathalène","insee":"24471","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.9059,"lng":1.2233,"tm":2529,"tc":2327,"ht":30,"rt":0,"cp":2333,"prl":0,"vv":0,"gdf":26,"ch":36,"cle":0,"mb":104,"grp":0,"pa":2333,"r2":260,"nb_ht":1,"nb_cp":4,"nb_prl":0,"nb_vv":0,"nb_gdf":6,"nb_ch":18,"nb_cle":0,"nb_mb":17},{"c":"Sarlat La Canéda","insee":"24520","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8918,"lng":1.2168,"tm":7156,"tc":5724,"ht":1375,"rt":582,"cp":1656,"prl":201,"vv":0,"gdf":176,"ch":490,"cle":39,"mb":2566,"grp":71,"pa":1857,"r2":2840,"nb_ht":22,"nb_cp":4,"nb_prl":2,"nb_vv":0,"nb_gdf":35,"nb_ch":207,"nb_cle":9,"nb_mb":605},{"c":"Tamniès","insee":"24544","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.9247,"lng":1.1389,"tm":841,"tc":775,"ht":101,"rt":0,"cp":315,"prl":200,"vv":0,"gdf":7,"ch":22,"cle":0,"mb":147,"grp":49,"pa":515,"r2":300,"nb_ht":1,"nb_cp":2,"nb_prl":1,"nb_vv":0,"nb_gdf":1,"nb_ch":8,"nb_cle":0,"nb_mb":30},{"c":"Vézac","insee":"24577","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8382,"lng":1.1644,"tm":1638,"tc":1303,"ht":109,"rt":0,"cp":1184,"prl":0,"vv":0,"gdf":6,"ch":39,"cle":4,"mb":278,"grp":18,"pa":1184,"r2":425,"nb_ht":2,"nb_cp":5,"nb_prl":0,"nb_vv":0,"nb_gdf":1,"nb_ch":18,"nb_cle":1,"nb_mb":46},{"c":"Vitrac","insee":"24587","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8472,"lng":1.2033,"tm":2587,"tc":2250,"ht":240,"rt":0,"cp":1842,"prl":0,"vv":0,"gdf":49,"ch":80,"cle":6,"mb":370,"grp":0,"pa":1842,"r2":265,"nb_ht":4,"nb_cp":4,"nb_prl":0,"nb_vv":0,"nb_gdf":10,"nb_ch":31,"nb_cle":1,"nb_mb":73},{"c":"Aubas","insee":"24014","e":"CCVV","en":"Vallée de l'Homme","lat":45.0212,"lng":1.278,"tm":162,"tc":82,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":10,"ch":20,"cle":8,"mb":124,"grp":0,"pa":0,"r2":120,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":8,"nb_cle":2,"nb_mb":25},{"c":"Audrix","insee":"24015","e":"CCVV","en":"Vallée de l'Homme","lat":44.9214,"lng":1.0421,"tm":56,"tc":39,"ht":15,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":0,"ch":0,"cle":0,"mb":41,"grp":0,"pa":0,"r2":135,"nb_ht":1,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":0,"nb_cle":0,"nb_mb":10},{"c":"Bugue (Le)","insee":"24067","e":"CCVV","en":"Vallée de l'Homme","lat":44.9195,"lng":0.9305,"tm":2396,"tc":2204,"ht":185,"rt":383,"cp":1392,"prl":0,"vv":0,"gdf":41,"ch":54,"cle":4,"mb":337,"grp":0,"pa":1392,"r2":1230,"nb_ht":3,"nb_cp":3,"nb_prl":0,"nb_vv":0,"nb_gdf":9,"nb_ch":24,"nb_cle":1,"nb_mb":71},{"c":"Campagne","insee":"24076","e":"CCVV","en":"Vallée de l'Homme","lat":44.9073,"lng":1.0131,"tm":378,"tc":328,"ht":0,"rt":0,"cp":306,"prl":0,"vv":0,"gdf":6,"ch":23,"cle":0,"mb":43,"grp":0,"pa":306,"r2":235,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":1,"nb_ch":9,"nb_cle":0,"nb_mb":11},{"c":"Chapelle Aubareil (La)","insee":"24106","e":"CCVV","en":"Vallée de l'Homme","lat":44.956,"lng":1.1887,"tm":618,"tc":427,"ht":43,"rt":0,"cp":276,"prl":40,"vv":0,"gdf":6,"ch":63,"cle":0,"mb":190,"grp":0,"pa":316,"r2":445,"nb_ht":1,"nb_cp":1,"nb_prl":1,"nb_vv":0,"nb_gdf":1,"nb_ch":28,"nb_cle":0,"nb_mb":30},{"c":"Coly - Saint Amand","insee":"24127","e":"CCVV","en":"Vallée de l'Homme","lat":45.0479,"lng":1.334,"tm":2086,"tc":1257,"ht":53,"rt":442,"cp":627,"prl":522,"vv":0,"gdf":34,"ch":70,"cle":0,"mb":329,"grp":9,"pa":1149,"r2":660,"nb_ht":2,"nb_cp":2,"nb_prl":2,"nb_vv":0,"nb_gdf":6,"nb_ch":25,"nb_cle":0,"nb_mb":54},{"c":"Fanlac","insee":"24174","e":"CCVV","en":"Vallée de l'Homme","lat":44.9921,"lng":1.1576,"tm":57,"tc":6,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":0,"ch":0,"cle":2,"mb":55,"grp":0,"pa":0,"r2":170,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":0,"nb_cle":1,"nb_mb":9},{"c":"Farges (Les)","insee":"24175","e":"CCVV","en":"Vallée de l'Homme","lat":45.0282,"lng":1.2727,"tm":44,"tc":7,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":0,"ch":0,"cle":0,"mb":44,"grp":0,"pa":0,"r2":75,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":0,"nb_cle":0,"nb_mb":12},{"c":"Fleurac","insee":"24183","e":"CCVV","en":"Vallée de l'Homme","lat":44.9706,"lng":1.0742,"tm":125,"tc":56,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":13,"ch":10,"cle":4,"mb":98,"grp":0,"pa":0,"r2":460,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":3,"nb_ch":4,"nb_cle":1,"nb_mb":14},{"c":"Journiac","insee":"24217","e":"CCVV","en":"Vallée de l'Homme","lat":44.9337,"lng":1.0227,"tm":112,"tc":12,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":4,"ch":0,"cle":0,"mb":108,"grp":0,"pa":0,"r2":190,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":1,"nb_ch":0,"nb_cle":0,"nb_mb":17},{"c":"Les Eyzies","insee":"24172","e":"CCVV","en":"Vallée de l'Homme","lat":44.9397,"lng":1.0173,"tm":3069,"tc":2582,"ht":346,"rt":536,"cp":1549,"prl":0,"vv":0,"gdf":49,"ch":104,"cle":9,"mb":377,"grp":99,"pa":1549,"r2":1805,"nb_ht":8,"nb_cp":5,"nb_prl":0,"nb_vv":0,"nb_gdf":11,"nb_ch":49,"nb_cle":2,"nb_mb":82},{"c":"Limeuil","insee":"24240","e":"CCVV","en":"Vallée de l'Homme","lat":44.8856,"lng":0.8898,"tm":783,"tc":483,"ht":21,"rt":218,"cp":414,"prl":0,"vv":0,"gdf":34,"ch":12,"cle":0,"mb":84,"grp":0,"pa":414,"r2":740,"nb_ht":1,"nb_cp":2,"nb_prl":0,"nb_vv":0,"nb_gdf":6,"nb_ch":4,"nb_cle":0,"nb_mb":12},{"c":"Mauzens et Miremont","insee":"24261","e":"CCVV","en":"Vallée de l'Homme","lat":44.9468,"lng":1.0762,"tm":207,"tc":107,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":10,"ch":22,"cle":0,"mb":175,"grp":0,"pa":0,"r2":295,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":1,"nb_ch":10,"nb_cle":0,"nb_mb":22},{"c":"Montignac","insee":"24291","e":"CCVV","en":"Vallée de l'Homme","lat":45.0651,"lng":1.1589,"tm":2643,"tc":1943,"ht":218,"rt":1201,"cp":297,"prl":0,"vv":152,"gdf":37,"ch":62,"cle":9,"mb":533,"grp":134,"pa":449,"r2":1940,"nb_ht":5,"nb_cp":3,"nb_prl":0,"nb_vv":2,"nb_gdf":6,"nb_ch":29,"nb_cle":2,"nb_mb":115},{"c":"Peyzac le Moustier","insee":"24326","e":"CCVV","en":"Vallée de l'Homme","lat":44.9847,"lng":1.0869,"tm":92,"tc":76,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":0,"ch":12,"cle":0,"mb":80,"grp":0,"pa":0,"r2":290,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":6,"nb_cle":0,"nb_mb":16},{"c":"Plazac","insee":"24330","e":"CCVV","en":"Vallée de l'Homme","lat":44.9943,"lng":1.1088,"tm":651,"tc":463,"ht":0,"rt":0,"cp":345,"prl":0,"vv":0,"gdf":35,"ch":39,"cle":0,"mb":232,"grp":0,"pa":345,"r2":690,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":5,"nb_ch":15,"nb_cle":0,"nb_mb":39},{"c":"Rouffignac Saint Cernin de Reilhac","insee":"24356","e":"CCVV","en":"Vallée de l'Homme","lat":45.0056,"lng":1.0357,"tm":1216,"tc":972,"ht":46,"rt":0,"cp":837,"prl":0,"vv":0,"gdf":20,"ch":30,"cle":6,"mb":277,"grp":0,"pa":837,"r2":600,"nb_ht":1,"nb_cp":5,"nb_prl":0,"nb_vv":0,"nb_gdf":3,"nb_ch":15,"nb_cle":2,"nb_mb":46},{"c":"Saint Avit de Vialard","insee":"24377","e":"CCVV","en":"Vallée de l'Homme","lat":44.9212,"lng":1.0479,"tm":1865,"tc":1250,"ht":0,"rt":104,"cp":1224,"prl":500,"vv":0,"gdf":0,"ch":0,"cle":0,"mb":37,"grp":0,"pa":1724,"r2":50,"nb_ht":0,"nb_cp":1,"nb_prl":1,"nb_vv":0,"nb_gdf":0,"nb_ch":0,"nb_cle":0,"nb_mb":7},{"c":"Saint Chamassy","insee":"24388","e":"CCVV","en":"Vallée de l'Homme","lat":44.9087,"lng":0.974,"tm":237,"tc":137,"ht":0,"rt":0,"cp":0,"prl":54,"vv":0,"gdf":47,"ch":4,"cle":0,"mb":132,"grp":0,"pa":54,"r2":570,"nb_ht":0,"nb_cp":0,"nb_prl":1,"nb_vv":0,"nb_gdf":12,"nb_ch":2,"nb_cle":0,"nb_mb":19},{"c":"Saint Félix de Reilhac et Mortemart","insee":"24404","e":"CCVV","en":"Vallée de l'Homme","lat":44.9598,"lng":1.0372,"tm":272,"tc":28,"ht":0,"rt":0,"cp":195,"prl":0,"vv":0,"gdf":0,"ch":0,"cle":0,"mb":77,"grp":0,"pa":195,"r2":190,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":0,"nb_cle":0,"nb_mb":12},{"c":"Saint Léon sur Vézère","insee":"24443","e":"CCVV","en":"Vallée de l'Homme","lat":44.9985,"lng":1.1329,"tm":878,"tc":692,"ht":0,"rt":0,"cp":639,"prl":0,"vv":0,"gdf":0,"ch":26,"cle":0,"mb":213,"grp":0,"pa":639,"r2":740,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":10,"nb_cle":0,"nb_mb":39},{"c":"Savignac de Miremont","insee":"24524","e":"CCVV","en":"Vallée de l'Homme","lat":44.9541,"lng":1.0934,"tm":104,"tc":56,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":16,"ch":15,"cle":0,"mb":73,"grp":0,"pa":0,"r2":135,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":3,"nb_ch":4,"nb_cle":0,"nb_mb":13},{"c":"Sergeac","insee":"24531","e":"CCVV","en":"Vallée de l'Homme","lat":45.0292,"lng":1.1395,"tm":176,"tc":77,"ht":20,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":10,"ch":8,"cle":11,"mb":127,"grp":0,"pa":0,"r2":165,"nb_ht":1,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":3,"nb_cle":2,"nb_mb":19},{"c":"Thonac","insee":"24552","e":"CCVV","en":"Vallée de l'Homme","lat":45.0187,"lng":1.143,"tm":346,"tc":281,"ht":53,"rt":0,"cp":216,"prl":0,"vv":0,"gdf":0,"ch":0,"cle":0,"mb":77,"grp":0,"pa":216,"r2":185,"nb_ht":1,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":0,"nb_cle":0,"nb_mb":12},{"c":"Tursac","insee":"24559","e":"CCVV","en":"Vallée de l'Homme","lat":44.9747,"lng":1.0612,"tm":952,"tc":798,"ht":0,"rt":0,"cp":747,"prl":0,"vv":0,"gdf":22,"ch":26,"cle":0,"mb":157,"grp":0,"pa":747,"r2":345,"nb_ht":0,"nb_cp":5,"nb_prl":0,"nb_vv":0,"nb_gdf":4,"nb_ch":10,"nb_cle":0,"nb_mb":29},{"c":"Valojoulx","insee":"24563","e":"CCVV","en":"Vallée de l'Homme","lat":45.0019,"lng":1.2019,"tm":160,"tc":64,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":12,"ch":40,"cle":12,"mb":96,"grp":0,"pa":0,"r2":190,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":14,"nb_cle":2,"nb_mb":20},{"c":"Archignac","insee":"24012","e":"CCPF","en":"Pays de Fénelon","lat":44.9474,"lng":1.2979,"tm":153,"tc":95,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":40,"ch":33,"cle":0,"mb":80,"grp":0,"pa":0,"r2":310,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":7,"nb_ch":12,"nb_cle":0,"nb_mb":15},{"c":"Borrèze","insee":"24050","e":"CCPF","en":"Pays de Fénelon","lat":44.9214,"lng":1.3919,"tm":81,"tc":63,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":30,"ch":2,"cle":0,"mb":49,"grp":0,"pa":0,"r2":445,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":5,"nb_ch":1,"nb_cle":0,"nb_mb":7},{"c":"Calviac en Périgord","insee":"24074","e":"CCPF","en":"Pays de Fénelon","lat":44.8344,"lng":1.2255,"tm":756,"tc":549,"ht":0,"rt":0,"cp":465,"prl":109,"vv":66,"gdf":37,"ch":4,"cle":0,"mb":75,"grp":0,"pa":640,"r2":400,"nb_ht":0,"nb_cp":1,"nb_prl":2,"nb_vv":1,"nb_gdf":7,"nb_ch":1,"nb_cle":0,"nb_mb":16},{"c":"Carlux","insee":"24081","e":"CCPF","en":"Pays de Fénelon","lat":44.8511,"lng":1.2813,"tm":610,"tc":343,"ht":40,"rt":0,"cp":240,"prl":0,"vv":0,"gdf":77,"ch":43,"cle":0,"mb":210,"grp":0,"pa":240,"r2":580,"nb_ht":1,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":14,"nb_ch":20,"nb_cle":0,"nb_mb":38},{"c":"Carsac Aillac","insee":"24082","e":"CCPF","en":"Pays de Fénelon","lat":44.8407,"lng":1.2255,"tm":2273,"tc":1993,"ht":168,"rt":0,"cp":1533,"prl":0,"vv":86,"gdf":50,"ch":96,"cle":6,"mb":334,"grp":0,"pa":1619,"r2":610,"nb_ht":4,"nb_cp":3,"nb_prl":0,"nb_vv":1,"nb_gdf":10,"nb_ch":35,"nb_cle":2,"nb_mb":74},{"c":"Jayac","insee":"24215","e":"CCPF","en":"Pays de Fénelon","lat":44.9014,"lng":1.3042,"tm":237,"tc":105,"ht":28,"rt":0,"cp":39,"prl":0,"vv":0,"gdf":13,"ch":14,"cle":0,"mb":143,"grp":0,"pa":39,"r2":75,"nb_ht":1,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":5,"nb_cle":0,"nb_mb":22},{"c":"Nadaillac","insee":"24301","e":"CCPF","en":"Pays de Fénelon","lat":44.9738,"lng":1.3434,"tm":98,"tc":64,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":12,"ch":10,"cle":0,"mb":76,"grp":0,"pa":0,"r2":230,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":5,"nb_cle":0,"nb_mb":9},{"c":"Paulin","insee":"24317","e":"CCPF","en":"Pays de Fénelon","lat":44.9385,"lng":1.3353,"tm":104,"tc":63,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":37,"ch":22,"cle":12,"mb":33,"grp":0,"pa":0,"r2":125,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":7,"nb_ch":8,"nb_cle":3,"nb_mb":5},{"c":"Pechs de l'Espérance","insee":"24314","e":"CCPF","en":"Pays de Fénelon","lat":44.8764,"lng":1.2612,"tm":909,"tc":716,"ht":0,"rt":0,"cp":669,"prl":0,"vv":0,"gdf":8,"ch":5,"cle":8,"mb":219,"grp":0,"pa":669,"r2":750,"nb_ht":0,"nb_cp":3,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":2,"nb_cle":1,"nb_mb":36},{"c":"Prats de Carlux","insee":"24336","e":"CCPF","en":"Pays de Fénelon","lat":44.8519,"lng":1.3001,"tm":1003,"tc":899,"ht":0,"rt":0,"cp":750,"prl":0,"vv":0,"gdf":47,"ch":14,"cle":0,"mb":192,"grp":0,"pa":750,"r2":80,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":7,"nb_ch":7,"nb_cle":0,"nb_mb":33},{"c":"Saint Crépin et Carlucet","insee":"24392","e":"CCPF","en":"Pays de Fénelon","lat":44.8763,"lng":1.3165,"tm":1753,"tc":1483,"ht":0,"rt":0,"cp":1216,"prl":0,"vv":50,"gdf":54,"ch":21,"cle":0,"mb":412,"grp":0,"pa":1266,"r2":240,"nb_ht":0,"nb_cp":2,"nb_prl":0,"nb_vv":1,"nb_gdf":10,"nb_ch":9,"nb_cle":0,"nb_mb":79},{"c":"Saint Geniès","insee":"24412","e":"CCPF","en":"Pays de Fénelon","lat":44.9756,"lng":1.3122,"tm":1579,"tc":927,"ht":21,"rt":0,"cp":609,"prl":0,"vv":424,"gdf":57,"ch":44,"cle":13,"mb":323,"grp":88,"pa":1033,"r2":1170,"nb_ht":1,"nb_cp":1,"nb_prl":0,"nb_vv":2,"nb_gdf":9,"nb_ch":16,"nb_cle":2,"nb_mb":54},{"c":"Saint Julien de Lampon","insee":"24432","e":"CCPF","en":"Pays de Fénelon","lat":44.8187,"lng":1.2887,"tm":867,"tc":774,"ht":0,"rt":0,"cp":672,"prl":0,"vv":0,"gdf":20,"ch":20,"cle":17,"mb":117,"grp":21,"pa":672,"r2":555,"nb_ht":0,"nb_cp":2,"nb_prl":0,"nb_vv":0,"nb_gdf":6,"nb_ch":10,"nb_cle":3,"nb_mb":22},{"c":"Sainte Mondane","insee":"24470","e":"CCPF","en":"Pays de Fénelon","lat":44.8117,"lng":1.231,"tm":260,"tc":68,"ht":0,"rt":0,"cp":48,"prl":0,"vv":0,"gdf":34,"ch":16,"cle":0,"mb":162,"grp":0,"pa":48,"r2":165,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":6,"nb_ch":5,"nb_cle":0,"nb_mb":24},{"c":"Salignac Eyvigues","insee":"24516","e":"CCPF","en":"Pays de Fénelon","lat":44.9401,"lng":1.3267,"tm":1224,"tc":945,"ht":0,"rt":0,"cp":783,"prl":0,"vv":0,"gdf":15,"ch":57,"cle":10,"mb":249,"grp":110,"pa":783,"r2":505,"nb_ht":0,"nb_cp":2,"nb_prl":0,"nb_vv":0,"nb_gdf":3,"nb_ch":24,"nb_cle":2,"nb_mb":51},{"c":"Simeyrols","insee":"24535","e":"CCPF","en":"Pays de Fénelon","lat":44.8509,"lng":1.2387,"tm":170,"tc":65,"ht":0,"rt":0,"cp":24,"prl":0,"vv":0,"gdf":6,"ch":18,"cle":0,"mb":122,"grp":0,"pa":24,"r2":190,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":9,"nb_cle":0,"nb_mb":22},{"c":"Veyrignac","insee":"24574","e":"CCPF","en":"Pays de Fénelon","lat":44.8205,"lng":1.2469,"tm":276,"tc":247,"ht":0,"rt":0,"cp":117,"prl":0,"vv":0,"gdf":18,"ch":6,"cle":6,"mb":129,"grp":0,"pa":117,"r2":210,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":3,"nb_ch":3,"nb_cle":3,"nb_mb":27}];
 
-// ── Données (embarquées — zéro dépendance serveur) ────────────────────
-const DATA = [{"c":"Beynac et Cazenac","insee":"24040","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.836,"lng":1.1484,"tm":771,"tc":583,"ht":41,"rt":0,"cp":396,"prl":0,"vv":0,"gdf":45,"ch":53,"cle":0,"mb":236,"grp":0,"pa":396,"r2":340,"nb_ht":2,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":11,"nb_ch":21,"nb_cle":0,"nb_mb":44},{"c":"Marcillac St Quentin","insee":"24252","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8761,"lng":1.1791,"tm":764,"tc":513,"ht":0,"rt":0,"cp":402,"prl":0,"vv":0,"gdf":64,"ch":36,"cle":0,"mb":262,"grp":0,"pa":402,"r2":0,"nb_ht":0,"nb_cp":2,"nb_prl":0,"nb_vv":0,"nb_gdf":10,"nb_ch":13,"nb_cle":0,"nb_mb":41},{"c":"Marquay","insee":"24255","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8685,"lng":1.1244,"tm":496,"tc":375,"ht":33,"rt":0,"cp":0,"prl":0,"vv":222,"gdf":26,"ch":48,"cle":0,"mb":167,"grp":0,"pa":222,"r2":370,"nb_ht":1,"nb_cp":0,"nb_prl":0,"nb_vv":1,"nb_gdf":5,"nb_ch":16,"nb_cle":0,"nb_mb":33},{"c":"Proissans","insee":"24341","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.9002,"lng":1.2133,"tm":1289,"tc":1121,"ht":0,"rt":0,"cp":881,"prl":0,"vv":0,"gdf":64,"ch":49,"cle":8,"mb":287,"grp":0,"pa":881,"r2":170,"nb_ht":0,"nb_cp":3,"nb_prl":0,"nb_vv":0,"nb_gdf":11,"nb_ch":19,"nb_cle":2,"nb_mb":55},{"c":"Roque Gageac (La)","insee":"24355","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8259,"lng":1.1681,"tm":1578,"tc":1126,"ht":184,"rt":0,"cp":978,"prl":0,"vv":0,"gdf":107,"ch":44,"cle":0,"mb":253,"grp":12,"pa":978,"r2":335,"nb_ht":4,"nb_cp":3,"nb_prl":0,"nb_vv":0,"nb_gdf":22,"nb_ch":18,"nb_cle":0,"nb_mb":44},{"c":"Saint André d'Allas","insee":"24366","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8721,"lng":1.0867,"tm":1476,"tc":1277,"ht":0,"rt":0,"cp":1179,"prl":0,"vv":0,"gdf":27,"ch":40,"cle":4,"mb":226,"grp":0,"pa":1179,"r2":305,"nb_ht":0,"nb_cp":4,"nb_prl":0,"nb_vv":0,"nb_gdf":6,"nb_ch":16,"nb_cle":1,"nb_mb":49},{"c":"Saint Vincent de Cosse","insee":"24510","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.817,"lng":1.1356,"tm":647,"tc":364,"ht":80,"rt":0,"cp":186,"prl":0,"vv":0,"gdf":10,"ch":51,"cle":0,"mb":320,"grp":0,"pa":186,"r2":205,"nb_ht":1,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":19,"nb_cle":0,"nb_mb":60},{"c":"Saint Vincent le Paluel","insee":"24512","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8508,"lng":1.1937,"tm":131,"tc":72,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":26,"ch":13,"cle":6,"mb":86,"grp":0,"pa":0,"r2":145,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":6,"nb_ch":5,"nb_cle":1,"nb_mb":15},{"c":"Sainte Nathalène","insee":"24471","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.9059,"lng":1.2233,"tm":2529,"tc":2327,"ht":30,"rt":0,"cp":2333,"prl":0,"vv":0,"gdf":26,"ch":36,"cle":0,"mb":104,"grp":0,"pa":2333,"r2":260,"nb_ht":1,"nb_cp":4,"nb_prl":0,"nb_vv":0,"nb_gdf":6,"nb_ch":18,"nb_cle":0,"nb_mb":17},{"c":"Sarlat La Canéda","insee":"24520","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8918,"lng":1.2168,"tm":7156,"tc":5724,"ht":1375,"rt":582,"cp":1656,"prl":201,"vv":0,"gdf":176,"ch":490,"cle":39,"mb":2566,"grp":71,"pa":1857,"r2":2840,"nb_ht":22,"nb_cp":4,"nb_prl":2,"nb_vv":0,"nb_gdf":35,"nb_ch":207,"nb_cle":9,"nb_mb":605},{"c":"Tamniès","insee":"24544","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.9247,"lng":1.1389,"tm":841,"tc":775,"ht":101,"rt":0,"cp":315,"prl":200,"vv":0,"gdf":7,"ch":22,"cle":0,"mb":147,"grp":49,"pa":515,"r2":300,"nb_ht":1,"nb_cp":2,"nb_prl":1,"nb_vv":0,"nb_gdf":1,"nb_ch":8,"nb_cle":0,"nb_mb":30},{"c":"Vézac","insee":"24577","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8382,"lng":1.1644,"tm":1638,"tc":1303,"ht":109,"rt":0,"cp":1184,"prl":0,"vv":0,"gdf":6,"ch":39,"cle":4,"mb":278,"grp":18,"pa":1184,"r2":425,"nb_ht":2,"nb_cp":5,"nb_prl":0,"nb_vv":0,"nb_gdf":1,"nb_ch":18,"nb_cle":1,"nb_mb":46},{"c":"Vitrac","insee":"24587","e":"CCSPN","en":"Sarlat-Périgord Noir","lat":44.8472,"lng":1.2033,"tm":2587,"tc":2250,"ht":240,"rt":0,"cp":1842,"prl":0,"vv":0,"gdf":49,"ch":80,"cle":6,"mb":370,"grp":0,"pa":1842,"r2":265,"nb_ht":4,"nb_cp":4,"nb_prl":0,"nb_vv":0,"nb_gdf":10,"nb_ch":31,"nb_cle":1,"nb_mb":73},{"c":"Aubas","insee":"24014","e":"CCVV","en":"Vallée de l'Homme","lat":45.0212,"lng":1.278,"tm":162,"tc":82,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":10,"ch":20,"cle":8,"mb":124,"grp":0,"pa":0,"r2":120,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":8,"nb_cle":2,"nb_mb":25},{"c":"Audrix","insee":"24015","e":"CCVV","en":"Vallée de l'Homme","lat":44.9214,"lng":1.0421,"tm":56,"tc":39,"ht":15,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":0,"ch":0,"cle":0,"mb":41,"grp":0,"pa":0,"r2":135,"nb_ht":1,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":0,"nb_cle":0,"nb_mb":10},{"c":"Bugue (Le)","insee":"24067","e":"CCVV","en":"Vallée de l'Homme","lat":44.9195,"lng":0.9305,"tm":2396,"tc":2204,"ht":185,"rt":383,"cp":1392,"prl":0,"vv":0,"gdf":41,"ch":54,"cle":4,"mb":337,"grp":0,"pa":1392,"r2":1230,"nb_ht":3,"nb_cp":3,"nb_prl":0,"nb_vv":0,"nb_gdf":9,"nb_ch":24,"nb_cle":1,"nb_mb":71},{"c":"Campagne","insee":"24076","e":"CCVV","en":"Vallée de l'Homme","lat":44.9073,"lng":1.0131,"tm":378,"tc":328,"ht":0,"rt":0,"cp":306,"prl":0,"vv":0,"gdf":6,"ch":23,"cle":0,"mb":43,"grp":0,"pa":306,"r2":235,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":1,"nb_ch":9,"nb_cle":0,"nb_mb":11},{"c":"Chapelle Aubareil (La)","insee":"24106","e":"CCVV","en":"Vallée de l'Homme","lat":44.956,"lng":1.1887,"tm":618,"tc":427,"ht":43,"rt":0,"cp":276,"prl":40,"vv":0,"gdf":6,"ch":63,"cle":0,"mb":190,"grp":0,"pa":316,"r2":445,"nb_ht":1,"nb_cp":1,"nb_prl":1,"nb_vv":0,"nb_gdf":1,"nb_ch":28,"nb_cle":0,"nb_mb":30},{"c":"Coly - Saint Amand","insee":"24127","e":"CCVV","en":"Vallée de l'Homme","lat":45.0479,"lng":1.334,"tm":2086,"tc":1257,"ht":53,"rt":442,"cp":627,"prl":522,"vv":0,"gdf":34,"ch":70,"cle":0,"mb":329,"grp":9,"pa":1149,"r2":660,"nb_ht":2,"nb_cp":2,"nb_prl":2,"nb_vv":0,"nb_gdf":6,"nb_ch":25,"nb_cle":0,"nb_mb":54},{"c":"Fanlac","insee":"24174","e":"CCVV","en":"Vallée de l'Homme","lat":44.9921,"lng":1.1576,"tm":57,"tc":6,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":0,"ch":0,"cle":2,"mb":55,"grp":0,"pa":0,"r2":170,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":0,"nb_cle":1,"nb_mb":9},{"c":"Farges (Les)","insee":"24175","e":"CCVV","en":"Vallée de l'Homme","lat":45.0282,"lng":1.2727,"tm":44,"tc":7,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":0,"ch":0,"cle":0,"mb":44,"grp":0,"pa":0,"r2":75,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":0,"nb_cle":0,"nb_mb":12},{"c":"Fleurac","insee":"24183","e":"CCVV","en":"Vallée de l'Homme","lat":44.9706,"lng":1.0742,"tm":125,"tc":56,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":13,"ch":10,"cle":4,"mb":98,"grp":0,"pa":0,"r2":460,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":3,"nb_ch":4,"nb_cle":1,"nb_mb":14},{"c":"Journiac","insee":"24217","e":"CCVV","en":"Vallée de l'Homme","lat":44.9337,"lng":1.0227,"tm":112,"tc":12,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":4,"ch":0,"cle":0,"mb":108,"grp":0,"pa":0,"r2":190,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":1,"nb_ch":0,"nb_cle":0,"nb_mb":17},{"c":"Les Eyzies","insee":"24172","e":"CCVV","en":"Vallée de l'Homme","lat":44.9397,"lng":1.0173,"tm":3069,"tc":2582,"ht":346,"rt":536,"cp":1549,"prl":0,"vv":0,"gdf":49,"ch":104,"cle":9,"mb":377,"grp":99,"pa":1549,"r2":1805,"nb_ht":8,"nb_cp":5,"nb_prl":0,"nb_vv":0,"nb_gdf":11,"nb_ch":49,"nb_cle":2,"nb_mb":82},{"c":"Limeuil","insee":"24240","e":"CCVV","en":"Vallée de l'Homme","lat":44.8856,"lng":0.8898,"tm":783,"tc":483,"ht":21,"rt":218,"cp":414,"prl":0,"vv":0,"gdf":34,"ch":12,"cle":0,"mb":84,"grp":0,"pa":414,"r2":740,"nb_ht":1,"nb_cp":2,"nb_prl":0,"nb_vv":0,"nb_gdf":6,"nb_ch":4,"nb_cle":0,"nb_mb":12},{"c":"Mauzens et Miremont","insee":"24261","e":"CCVV","en":"Vallée de l'Homme","lat":44.9468,"lng":1.0762,"tm":207,"tc":107,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":10,"ch":22,"cle":0,"mb":175,"grp":0,"pa":0,"r2":295,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":1,"nb_ch":10,"nb_cle":0,"nb_mb":22},{"c":"Montignac","insee":"24291","e":"CCVV","en":"Vallée de l'Homme","lat":45.0651,"lng":1.1589,"tm":2643,"tc":1943,"ht":218,"rt":1201,"cp":297,"prl":0,"vv":152,"gdf":37,"ch":62,"cle":9,"mb":533,"grp":134,"pa":449,"r2":1940,"nb_ht":5,"nb_cp":3,"nb_prl":0,"nb_vv":2,"nb_gdf":6,"nb_ch":29,"nb_cle":2,"nb_mb":115},{"c":"Peyzac le Moustier","insee":"24326","e":"CCVV","en":"Vallée de l'Homme","lat":44.9847,"lng":1.0869,"tm":92,"tc":76,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":0,"ch":12,"cle":0,"mb":80,"grp":0,"pa":0,"r2":290,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":6,"nb_cle":0,"nb_mb":16},{"c":"Plazac","insee":"24330","e":"CCVV","en":"Vallée de l'Homme","lat":44.9943,"lng":1.1088,"tm":651,"tc":463,"ht":0,"rt":0,"cp":345,"prl":0,"vv":0,"gdf":35,"ch":39,"cle":0,"mb":232,"grp":0,"pa":345,"r2":690,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":5,"nb_ch":15,"nb_cle":0,"nb_mb":39},{"c":"Rouffignac Saint Cernin de Reilhac","insee":"24356","e":"CCVV","en":"Vallée de l'Homme","lat":45.0056,"lng":1.0357,"tm":1216,"tc":972,"ht":46,"rt":0,"cp":837,"prl":0,"vv":0,"gdf":20,"ch":30,"cle":6,"mb":277,"grp":0,"pa":837,"r2":600,"nb_ht":1,"nb_cp":5,"nb_prl":0,"nb_vv":0,"nb_gdf":3,"nb_ch":15,"nb_cle":2,"nb_mb":46},{"c":"Saint Avit de Vialard","insee":"24377","e":"CCVV","en":"Vallée de l'Homme","lat":44.9212,"lng":1.0479,"tm":1865,"tc":1250,"ht":0,"rt":104,"cp":1224,"prl":500,"vv":0,"gdf":0,"ch":0,"cle":0,"mb":37,"grp":0,"pa":1724,"r2":50,"nb_ht":0,"nb_cp":1,"nb_prl":1,"nb_vv":0,"nb_gdf":0,"nb_ch":0,"nb_cle":0,"nb_mb":7},{"c":"Saint Chamassy","insee":"24388","e":"CCVV","en":"Vallée de l'Homme","lat":44.9087,"lng":0.974,"tm":237,"tc":137,"ht":0,"rt":0,"cp":0,"prl":54,"vv":0,"gdf":47,"ch":4,"cle":0,"mb":132,"grp":0,"pa":54,"r2":570,"nb_ht":0,"nb_cp":0,"nb_prl":1,"nb_vv":0,"nb_gdf":12,"nb_ch":2,"nb_cle":0,"nb_mb":19},{"c":"Saint Félix de Reilhac et Mortemart","insee":"24404","e":"CCVV","en":"Vallée de l'Homme","lat":44.9598,"lng":1.0372,"tm":272,"tc":28,"ht":0,"rt":0,"cp":195,"prl":0,"vv":0,"gdf":0,"ch":0,"cle":0,"mb":77,"grp":0,"pa":195,"r2":190,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":0,"nb_cle":0,"nb_mb":12},{"c":"Saint Léon sur Vézère","insee":"24443","e":"CCVV","en":"Vallée de l'Homme","lat":44.9985,"lng":1.1329,"tm":878,"tc":692,"ht":0,"rt":0,"cp":639,"prl":0,"vv":0,"gdf":0,"ch":26,"cle":0,"mb":213,"grp":0,"pa":639,"r2":740,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":10,"nb_cle":0,"nb_mb":39},{"c":"Savignac de Miremont","insee":"24524","e":"CCVV","en":"Vallée de l'Homme","lat":44.9541,"lng":1.0934,"tm":104,"tc":56,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":16,"ch":15,"cle":0,"mb":73,"grp":0,"pa":0,"r2":135,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":3,"nb_ch":4,"nb_cle":0,"nb_mb":13},{"c":"Sergeac","insee":"24531","e":"CCVV","en":"Vallée de l'Homme","lat":45.0292,"lng":1.1395,"tm":176,"tc":77,"ht":20,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":10,"ch":8,"cle":11,"mb":127,"grp":0,"pa":0,"r2":165,"nb_ht":1,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":3,"nb_cle":2,"nb_mb":19},{"c":"Thonac","insee":"24552","e":"CCVV","en":"Vallée de l'Homme","lat":45.0187,"lng":1.143,"tm":346,"tc":281,"ht":53,"rt":0,"cp":216,"prl":0,"vv":0,"gdf":0,"ch":0,"cle":0,"mb":77,"grp":0,"pa":216,"r2":185,"nb_ht":1,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":0,"nb_ch":0,"nb_cle":0,"nb_mb":12},{"c":"Tursac","insee":"24559","e":"CCVV","en":"Vallée de l'Homme","lat":44.9747,"lng":1.0612,"tm":952,"tc":798,"ht":0,"rt":0,"cp":747,"prl":0,"vv":0,"gdf":22,"ch":26,"cle":0,"mb":157,"grp":0,"pa":747,"r2":345,"nb_ht":0,"nb_cp":5,"nb_prl":0,"nb_vv":0,"nb_gdf":4,"nb_ch":10,"nb_cle":0,"nb_mb":29},{"c":"Valojoulx","insee":"24563","e":"CCVV","en":"Vallée de l'Homme","lat":45.0019,"lng":1.2019,"tm":160,"tc":64,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":12,"ch":40,"cle":12,"mb":96,"grp":0,"pa":0,"r2":190,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":14,"nb_cle":2,"nb_mb":20},{"c":"Archignac","insee":"24012","e":"CCPF","en":"Pays de Fénelon","lat":44.9474,"lng":1.2979,"tm":153,"tc":95,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":40,"ch":33,"cle":0,"mb":80,"grp":0,"pa":0,"r2":310,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":7,"nb_ch":12,"nb_cle":0,"nb_mb":15},{"c":"Borrèze","insee":"24050","e":"CCPF","en":"Pays de Fénelon","lat":44.9214,"lng":1.3919,"tm":81,"tc":63,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":30,"ch":2,"cle":0,"mb":49,"grp":0,"pa":0,"r2":445,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":5,"nb_ch":1,"nb_cle":0,"nb_mb":7},{"c":"Calviac en Périgord","insee":"24074","e":"CCPF","en":"Pays de Fénelon","lat":44.8344,"lng":1.2255,"tm":756,"tc":549,"ht":0,"rt":0,"cp":465,"prl":109,"vv":66,"gdf":37,"ch":4,"cle":0,"mb":75,"grp":0,"pa":640,"r2":400,"nb_ht":0,"nb_cp":1,"nb_prl":2,"nb_vv":1,"nb_gdf":7,"nb_ch":1,"nb_cle":0,"nb_mb":16},{"c":"Carlux","insee":"24081","e":"CCPF","en":"Pays de Fénelon","lat":44.8511,"lng":1.2813,"tm":610,"tc":343,"ht":40,"rt":0,"cp":240,"prl":0,"vv":0,"gdf":77,"ch":43,"cle":0,"mb":210,"grp":0,"pa":240,"r2":580,"nb_ht":1,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":14,"nb_ch":20,"nb_cle":0,"nb_mb":38},{"c":"Carsac Aillac","insee":"24082","e":"CCPF","en":"Pays de Fénelon","lat":44.8407,"lng":1.2255,"tm":2273,"tc":1993,"ht":168,"rt":0,"cp":1533,"prl":0,"vv":86,"gdf":50,"ch":96,"cle":6,"mb":334,"grp":0,"pa":1619,"r2":610,"nb_ht":4,"nb_cp":3,"nb_prl":0,"nb_vv":1,"nb_gdf":10,"nb_ch":35,"nb_cle":2,"nb_mb":74},{"c":"Jayac","insee":"24215","e":"CCPF","en":"Pays de Fénelon","lat":44.9014,"lng":1.3042,"tm":237,"tc":105,"ht":28,"rt":0,"cp":39,"prl":0,"vv":0,"gdf":13,"ch":14,"cle":0,"mb":143,"grp":0,"pa":39,"r2":75,"nb_ht":1,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":5,"nb_cle":0,"nb_mb":22},{"c":"Nadaillac","insee":"24301","e":"CCPF","en":"Pays de Fénelon","lat":44.9738,"lng":1.3434,"tm":98,"tc":64,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":12,"ch":10,"cle":0,"mb":76,"grp":0,"pa":0,"r2":230,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":5,"nb_cle":0,"nb_mb":9},{"c":"Paulin","insee":"24317","e":"CCPF","en":"Pays de Fénelon","lat":44.9385,"lng":1.3353,"tm":104,"tc":63,"ht":0,"rt":0,"cp":0,"prl":0,"vv":0,"gdf":37,"ch":22,"cle":12,"mb":33,"grp":0,"pa":0,"r2":125,"nb_ht":0,"nb_cp":0,"nb_prl":0,"nb_vv":0,"nb_gdf":7,"nb_ch":8,"nb_cle":3,"nb_mb":5},{"c":"Pechs de l'Espérance","insee":"24314","e":"CCPF","en":"Pays de Fénelon","lat":44.8764,"lng":1.2612,"tm":909,"tc":716,"ht":0,"rt":0,"cp":669,"prl":0,"vv":0,"gdf":8,"ch":5,"cle":8,"mb":219,"grp":0,"pa":669,"r2":750,"nb_ht":0,"nb_cp":3,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":2,"nb_cle":1,"nb_mb":36},{"c":"Prats de Carlux","insee":"24336","e":"CCPF","en":"Pays de Fénelon","lat":44.8519,"lng":1.3001,"tm":1003,"tc":899,"ht":0,"rt":0,"cp":750,"prl":0,"vv":0,"gdf":47,"ch":14,"cle":0,"mb":192,"grp":0,"pa":750,"r2":80,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":7,"nb_ch":7,"nb_cle":0,"nb_mb":33},{"c":"Saint Crépin et Carlucet","insee":"24392","e":"CCPF","en":"Pays de Fénelon","lat":44.8763,"lng":1.3165,"tm":1753,"tc":1483,"ht":0,"rt":0,"cp":1216,"prl":0,"vv":50,"gdf":54,"ch":21,"cle":0,"mb":412,"grp":0,"pa":1266,"r2":240,"nb_ht":0,"nb_cp":2,"nb_prl":0,"nb_vv":1,"nb_gdf":10,"nb_ch":9,"nb_cle":0,"nb_mb":79},{"c":"Saint Geniès","insee":"24412","e":"CCPF","en":"Pays de Fénelon","lat":44.9756,"lng":1.3122,"tm":1579,"tc":927,"ht":21,"rt":0,"cp":609,"prl":0,"vv":424,"gdf":57,"ch":44,"cle":13,"mb":323,"grp":88,"pa":1033,"r2":1170,"nb_ht":1,"nb_cp":1,"nb_prl":0,"nb_vv":2,"nb_gdf":9,"nb_ch":16,"nb_cle":2,"nb_mb":54},{"c":"Saint Julien de Lampon","insee":"24432","e":"CCPF","en":"Pays de Fénelon","lat":44.8187,"lng":1.2887,"tm":867,"tc":774,"ht":0,"rt":0,"cp":672,"prl":0,"vv":0,"gdf":20,"ch":20,"cle":17,"mb":117,"grp":21,"pa":672,"r2":555,"nb_ht":0,"nb_cp":2,"nb_prl":0,"nb_vv":0,"nb_gdf":6,"nb_ch":10,"nb_cle":3,"nb_mb":22},{"c":"Sainte Mondane","insee":"24470","e":"CCPF","en":"Pays de Fénelon","lat":44.8117,"lng":1.231,"tm":260,"tc":68,"ht":0,"rt":0,"cp":48,"prl":0,"vv":0,"gdf":34,"ch":16,"cle":0,"mb":162,"grp":0,"pa":48,"r2":165,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":6,"nb_ch":5,"nb_cle":0,"nb_mb":24},{"c":"Salignac Eyvigues","insee":"24516","e":"CCPF","en":"Pays de Fénelon","lat":44.9401,"lng":1.3267,"tm":1224,"tc":945,"ht":0,"rt":0,"cp":783,"prl":0,"vv":0,"gdf":15,"ch":57,"cle":10,"mb":249,"grp":110,"pa":783,"r2":505,"nb_ht":0,"nb_cp":2,"nb_prl":0,"nb_vv":0,"nb_gdf":3,"nb_ch":24,"nb_cle":2,"nb_mb":51},{"c":"Simeyrols","insee":"24535","e":"CCPF","en":"Pays de Fénelon","lat":44.8509,"lng":1.2387,"tm":170,"tc":65,"ht":0,"rt":0,"cp":24,"prl":0,"vv":0,"gdf":6,"ch":18,"cle":0,"mb":122,"grp":0,"pa":24,"r2":190,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":2,"nb_ch":9,"nb_cle":0,"nb_mb":22},{"c":"Veyrignac","insee":"24574","e":"CCPF","en":"Pays de Fénelon","lat":44.8205,"lng":1.2469,"tm":276,"tc":247,"ht":0,"rt":0,"cp":117,"prl":0,"vv":0,"gdf":18,"ch":6,"cle":6,"mb":129,"grp":0,"pa":117,"r2":210,"nb_ht":0,"nb_cp":1,"nb_prl":0,"nb_vv":0,"nb_gdf":3,"nb_ch":3,"nb_cle":3,"nb_mb":27}];
-const INSEES = "24040,24252,24255,24341,24355,24366,24510,24512,24471,24520,24544,24577,24587,24014,24015,24067,24076,24106,24127,24174,24175,24183,24217,24172,24240,24261,24291,24326,24330,24356,24377,24388,24404,24443,24524,24531,24552,24559,24563,24012,24050,24074,24081,24082,24215,24301,24317,24314,24336,24392,24412,24432,24470,24516,24535,24574";
+const byINSEE={};
+DATA.forEach(d=>{byINSEE[d.insee]=d; d.lb=(d.gdf||0)+(d.cle||0);});
 
-const byINSEE = {};
-DATA.forEach(d => { byINSEE[d.insee] = d; });
+function fmt(n){return(n||0).toLocaleString('fr-FR')}
+function gv(d){return d[M]||0}
 
-// ── Métriques ─────────────────────────────────────────────────────────
-const MR = 36, NR = 5;
-let M = 'tm';
+// ── Tuiles ────────────────────────────────────────────────────────────
+const tL=L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  {attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a> © <a href="https://carto.com">CARTO</a>',subdomains:'abcd',maxZoom:18});
+const tD=L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+  {attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:18});
 
-// lb = hébergement labellisé (calculé côté JS)
-DATA.forEach(d => {
-  d.lb = (d.gdf||0) + (d.cle||0) + (d.tc||0);
-});
+const map=L.map('map',{center:[44.917,1.166],zoom:11,layers:[tL]});
 
-function fmt(n){ return (n||0).toLocaleString('fr-FR'); }
-function gv(d) { return d[M] || 0; }
-
-// ── Carte Leaflet ─────────────────────────────────────────────────────
-const tileLight = L.tileLayer(
-  'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-  {attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a> © <a href="https://carto.com">CARTO</a>',
-   subdomains:'abcd', maxZoom:18}
-);
-const tileDark = L.tileLayer(
-  'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-  {attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:18}
-);
-
-const map = L.map('map', {center:[44.917,1.166], zoom:11, layers:[tileLight]});
-
-// ── Groupes de couches ────────────────────────────────────────────────
-const grpCircles  = L.layerGroup().addTo(map);
-const grpLabels   = L.layerGroup().addTo(map);
-let   lyrChoro    = null;
-let   lyrCommunes = null;
-let   lyrEPCI     = null;
-let   geojson     = null;   // contours chargés depuis geo.api.gouv.fr
+const grpC=L.layerGroup().addTo(map);
+const grpL=L.layerGroup().addTo(map);
+let lChoro=null,lComm=null,lEPCI=null,geojson=null;
 
 // ── Tooltip ────────────────────────────────────────────────────────────
-function ttHTML(d) {
-  const ec = EC[d.epci||d.e];
-  const ep = EN[d.epci||d.e];
-  const e  = d.epci||d.e;
-  return `<div class="tt-inner">
-    <h4>${d.commune||d.c}</h4>
-    <span class="tt-tag" style="background:${ec}">${ep}</span>
-    <div class="tt-s">Hébergement marchand</div>
-    <div class="tt-row"><span class="tt-k">Total marchands</span><span class="tt-v">${fmt(d.tm)}</span></div>
-    <div class="tt-row"><span class="tt-k">Total classés</span><span class="tt-v">${fmt(d.tc)}</span></div>
-    <div class="tt-s">Détail (lits / établissements)</div>
-    <div class="tt-row"><span class="tt-k">⛺ Campings</span><span class="tt-v">${fmt(d.cp)} / ${d.nb_cp||0} étab.</span></div>
-    <div class="tt-row"><span class="tt-k">🚐 PRL</span><span class="tt-v">${fmt(d.prl)} / ${d.nb_prl||0} étab.</span></div>
-    <div class="tt-row"><span class="tt-k">🏘 Villages vacances</span><span class="tt-v">${fmt(d.vv)} / ${d.nb_vv||0} étab.</span></div>
-    <div class="tt-row"><span class="tt-k">🏩 Hôtels</span><span class="tt-v">${fmt(d.ht)} / ${d.nb_ht||0} étab.</span></div>
-    <div class="tt-row"><span class="tt-k">🏢 Résidences tourisme</span><span class="tt-v">${fmt(d.rt)}</span></div>
-    <div class="tt-row"><span class="tt-k">🏡 Meublés</span><span class="tt-v">${fmt(d.mb)} / ${d.nb_mb||0} étab.</span></div>
-    <div class="tt-row"><span class="tt-k">🌿 Gîtes GDF</span><span class="tt-v">${fmt(d.gdf)} / ${d.nb_gdf||0} étab.</span></div>
-    <div class="tt-row"><span class="tt-k">☕ Chambres d'hôtes</span><span class="tt-v">${fmt(d.ch)} / ${d.nb_ch||0} étab.</span></div>
-    <div class="tt-row"><span class="tt-k">🔑 Clévacances</span><span class="tt-v">${fmt(d.cle)} / ${d.nb_cle||0} étab.</span></div>
-    <div class="tt-row"><span class="tt-k">🏖 Rés. secondaires</span><span class="tt-v">${fmt(d.r2)}</span></div>
+function ttH(d){
+  const ec=EC[d.e||d.epci];
+  return`<div class="tt"><h4>${d.c||d.commune}</h4>
+  <span class="tt-tag" style="background:${ec}">${EN[d.e||d.epci]}</span>
+  <div class="tt-s">Hébergement marchand</div>
+  <div class="tt-row"><span class="tt-k">Total marchands</span><span class="tt-v">${fmt(d.tm||d.total_marchands)}</span></div>
+  <div class="tt-row"><span class="tt-k">Total classés</span><span class="tt-v">${fmt(d.tc||d.total_classes)}</span></div>
+  <div class="tt-s">Détail (lits / établ.)</div>
+  <div class="tt-row"><span class="tt-k">⛺ Campings</span><span class="tt-v">${fmt(d.cp)} / ${d.nb_cp||0}</span></div>
+  <div class="tt-row"><span class="tt-k">🚐 PRL</span><span class="tt-v">${fmt(d.prl)} / ${d.nb_prl||0}</span></div>
+  <div class="tt-row"><span class="tt-k">🏘 Villages vacances</span><span class="tt-v">${fmt(d.vv)} / ${d.nb_vv||0}</span></div>
+  <div class="tt-row"><span class="tt-k">🏩 Hôtels</span><span class="tt-v">${fmt(d.ht)} / ${d.nb_ht||0}</span></div>
+  <div class="tt-row"><span class="tt-k">🏢 Rés. tourisme</span><span class="tt-v">${fmt(d.rt)}</span></div>
+  <div class="tt-row"><span class="tt-k">🏡 Meublés</span><span class="tt-v">${fmt(d.mb)} / ${d.nb_mb||0}</span></div>
+  <div class="tt-row"><span class="tt-k">🌿 Gîtes GDF</span><span class="tt-v">${fmt(d.gdf)} / ${d.nb_gdf||0}</span></div>
+  <div class="tt-row"><span class="tt-k">☕ Ch. d'hôtes</span><span class="tt-v">${fmt(d.ch)} / ${d.nb_ch||0}</span></div>
+  <div class="tt-row"><span class="tt-k">🔑 Clévacances</span><span class="tt-v">${fmt(d.cle)} / ${d.nb_cle||0}</span></div>
+  <div class="tt-row"><span class="tt-k">🏖 Rés. secondaires</span><span class="tt-v">${fmt(d.r2)}</span></div>
   </div>`;
 }
 
-// ── Choroplèthe : couleur dégradée dans la teinte EPCI ───────────────
-function choroFill(val, mx, epci) {
-  if (!val) return '#F0EDE6';
-  const t   = Math.sqrt(val / mx);          // racine carrée pour linéariser visuellement
-  const col = EC[epci] || '#888';
-  // Interpolation hex vers blanc
-  const r1=parseInt(col.slice(1,3),16), g1=parseInt(col.slice(3,5),16), b1=parseInt(col.slice(5,7),16);
-  const r = Math.round(240 + (r1-240)*t);
-  const g = Math.round(237 + (g1-237)*t);
-  const b = Math.round(230 + (b1-230)*t);
-  return `rgb(${r},${g},${b})`;
+// ── Choroplèthe : dégradé dans la teinte EPCI ─────────────────────────
+function choroFill(val,mx,epci){
+  if(!val)return '#F0EDE6';
+  const t=Math.sqrt(val/mx);
+  const col=EC[epci]||'#888';
+  const r1=parseInt(col.slice(1,3),16),g1=parseInt(col.slice(3,5),16),b1=parseInt(col.slice(5,7),16);
+  return`rgb(${Math.round(240+(r1-240)*t)},${Math.round(237+(g1-237)*t)},${Math.round(230+(b1-230)*t)})`;
 }
 
-// ── Dessin des cercles ────────────────────────────────────────────────
-function drawCircles() {
-  grpCircles.clearLayers();
-  grpLabels.clearLayers();
-  const mx     = Math.max(...DATA.map(gv), 1);
-  const sorted = [...DATA].sort((a,b) => gv(b)-gv(a));
-
-  sorted.forEach(d => {
-    const v = gv(d), col = EC[d.e];
-    if (!v) return;
-    const r = NR + Math.sqrt(v/mx)*(MR-NR);
-
-    const cm = L.circleMarker([d.lat, d.lng], {
-      radius:r, fillColor:col, fillOpacity:0.62,
-      color:col, weight:1.8, opacity:0.9
-    });
-    cm.bindTooltip(ttHTML(d), {permanent:false,sticky:true,direction:'top',offset:[0,-r],opacity:1});
-    grpCircles.addLayer(cm);
-
-    if (document.getElementById('togLabels').checked) {
-      const lm = L.marker([d.lat,d.lng], {
-        icon: L.divIcon({
-          className:'commune-label',
-          html:`<div style="transform:translateY(-${Math.round(r)+6}px)">${d.c}</div>`,
-          iconSize:[0,0], iconAnchor:[0,0]
-        }),
+// ── Cercles ────────────────────────────────────────────────────────────
+function drawCircles(){
+  grpC.clearLayers(); grpL.clearLayers();
+  const mx=Math.max(...DATA.map(gv),1);
+  [...DATA].sort((a,b)=>gv(b)-gv(a)).forEach(d=>{
+    const v=gv(d); if(!v)return;
+    const r=NR+Math.sqrt(v/mx)*(MR-NR),col=EC[d.e];
+    const cm=L.circleMarker([d.lat,d.lng],{radius:r,fillColor:col,fillOpacity:.62,color:col,weight:1.8,opacity:.9});
+    cm.bindTooltip(ttH(d),{permanent:false,sticky:true,direction:'top',offset:[0,-r],opacity:1});
+    grpC.addLayer(cm);
+    if(document.getElementById('togLabels').checked){
+      grpL.addLayer(L.marker([d.lat,d.lng],{
+        icon:L.divIcon({className:'lbl',html:`<div style="transform:translateY(-${Math.round(r)+5}px)">${d.c}</div>`,iconSize:[0,0],iconAnchor:[0,0]}),
         interactive:false
-      });
-      grpLabels.addLayer(lm);
+      }));
     }
   });
   szLegend(mx); top8(); chips();
 }
 
 // ── Choroplèthe ────────────────────────────────────────────────────────
-function drawChoro() {
-  if (lyrChoro) { map.removeLayer(lyrChoro); lyrChoro=null; }
-  if (!geojson || !document.getElementById('togChoro').checked) return;
-  const mx = Math.max(...DATA.map(gv),1);
-  lyrChoro = L.geoJSON(geojson, {
-    style(f) {
-      const d = byINSEE[f.properties.code];
-      const v = d ? gv(d) : 0;
-      return {
-        fillColor: choroFill(v, mx, d?.e),
-        fillOpacity: 0.65, weight:0.4, color:'#9B9080', opacity:0.5
-      };
+function drawChoro(){
+  if(lChoro){map.removeLayer(lChoro);lChoro=null;}
+  if(!geojson||!document.getElementById('togChoro').checked)return;
+  const mx=Math.max(...DATA.map(gv),1);
+  lChoro=L.geoJSON(geojson,{
+    style(f){
+      const d=byINSEE[f.properties.code];
+      return{fillColor:choroFill(d?gv(d):0,mx,d?.e),fillOpacity:.65,weight:.4,color:'#9B9080',opacity:.5};
     },
-    onEachFeature(f,layer) {
-      const d = byINSEE[f.properties.code];
-      if (d) layer.bindTooltip(ttHTML(d),{permanent:false,sticky:true,direction:'top',opacity:1});
-      layer.on('mouseover',()=>layer.setStyle({weight:1.5,color:'#2A1E10',fillOpacity:.85}));
-      layer.on('mouseout', ()=>lyrChoro.resetStyle(layer));
+    onEachFeature(f,layer){
+      const d=byINSEE[f.properties.code];
+      if(d){
+        layer.bindTooltip(ttH(d),{permanent:false,sticky:true,direction:'top',opacity:1});
+        layer.on('mouseover',()=>layer.setStyle({weight:1.5,color:'#2A1E10',fillOpacity:.85}));
+        layer.on('mouseout',()=>lChoro.resetStyle(layer));
+      }
     }
   }).addTo(map);
-  lyrChoro.bringToBack();
+  lChoro.bringToBack();
 }
 
 // ── Limites communes ──────────────────────────────────────────────────
-function drawCommunes() {
-  if (lyrCommunes) { map.removeLayer(lyrCommunes); lyrCommunes=null; }
-  if (!geojson || !document.getElementById('togCommunes').checked) return;
-  lyrCommunes = L.geoJSON(geojson, {
-    style(f) {
-      const d = byINSEE[f.properties.code];
-      return {fillColor:'transparent', fillOpacity:0, weight:1, color: EC[d?.e]||'#888', opacity:0.6};
+function drawComm(){
+  if(lComm){map.removeLayer(lComm);lComm=null;}
+  if(!geojson||!document.getElementById('togComm').checked)return;
+  lComm=L.geoJSON(geojson,{
+    style(f){
+      const d=byINSEE[f.properties.code];
+      return{fillColor:'transparent',fillOpacity:0,weight:1,color:EC[d?.e]||'#888',opacity:.65};
     },
     interactive:false
   }).addTo(map);
 }
 
-// ── Limites EPCI (dissolution via Turf.js) ────────────────────────────
-function drawEPCI() {
-  if (lyrEPCI) { map.removeLayer(lyrEPCI); lyrEPCI=null; }
-  if (!geojson || !document.getElementById('togEPCI').checked) return;
-
-  const layers = [];
-  ['CCSPN','CCVV','CCPF'].forEach(epci => {
-    const feats = geojson.features.filter(f => byINSEE[f.properties.code]?.e === epci);
-    if (!feats.length) return;
-    try {
-      // Union successive des polygones de l'EPCI
-      let union = feats[0];
-      for (let i=1;i<feats.length;i++) {
-        try { union = turf.union(union, feats[i]); } catch(e) {}
-      }
-      layers.push(L.geoJSON(union, {
-        style:{fillColor:'transparent',fillOpacity:0,weight:2.8,color:EC[epci],opacity:0.85,dashArray:'7 3'},
+// ── Limites EPCI (union Turf.js) ─────────────────────────────────────
+function drawEPCI(){
+  if(lEPCI){map.removeLayer(lEPCI);lEPCI=null;}
+  if(!geojson||!document.getElementById('togEPCI').checked)return;
+  const layers=[];
+  ['CCSPN','CCVV','CCPF'].forEach(epci=>{
+    const feats=geojson.features.filter(f=>byINSEE[f.properties.code]?.e===epci);
+    if(!feats.length)return;
+    try{
+      let u=feats[0];
+      for(let i=1;i<feats.length;i++){try{u=turf.union(u,feats[i]);}catch(e){}}
+      layers.push(L.geoJSON(u,{
+        style:{fillColor:'transparent',fillOpacity:0,weight:2.8,color:EC[epci],opacity:.9,dashArray:'7 3'},
         interactive:false
       }));
-    } catch(e) { console.warn('EPCI union failed', epci, e); }
+    }catch(e){console.warn('EPCI union',epci,e);}
   });
-
-  lyrEPCI = L.layerGroup(layers).addTo(map);
+  lEPCI=L.layerGroup(layers).addTo(map);
 }
 
 // ── Redessine tout ────────────────────────────────────────────────────
-function redraw() {
-  if (document.getElementById('togCircles').checked) drawCircles();
-  else { grpCircles.clearLayers(); grpLabels.clearLayers(); }
-  drawChoro();
-  drawCommunes();
-  drawEPCI();
-  if (!document.getElementById('togCircles').checked &&
-      !document.getElementById('togChoro').checked) drawCircles(); // toujours au moins un mode
+function redraw(){
+  if(document.getElementById('togCircles').checked)drawCircles();
+  else{grpC.clearLayers();grpL.clearLayers();szLegend(1);top8();chips();}
+  drawChoro(); drawComm(); drawEPCI();
 }
 
-// ── Fond de carte ────────────────────────────────────────────────────
-function switchTiles() {
-  if (document.getElementById('togDark').checked) {
-    map.removeLayer(tileLight); tileDark.addTo(map);
-  } else {
-    map.removeLayer(tileDark); tileLight.addTo(map);
-  }
+function switchTiles(){
+  const dark=document.getElementById('togDark').checked;
+  if(dark){map.removeLayer(tL);tD.addTo(map);}
+  else{map.removeLayer(tD);tL.addTo(map);}
 }
 
-// ── Indicateur ────────────────────────────────────────────────────────
-function setM(btn) {
+function setM(btn){
   document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  M = btn.dataset.m;
-  redraw();
+  btn.classList.add('on'); M=btn.dataset.m; redraw();
 }
 
-// ── Légende ───────────────────────────────────────────────────────────
-function szLegend(mx) {
-  document.getElementById('szRow').innerHTML = [0.25,0.5,1].map(f=>{
-    const r = NR + Math.sqrt(f)*(MR-NR);
-    return `<div style="text-align:center">
-      <div class="sz-c" style="width:${r*2}px;height:${r*2}px;margin:0 auto"></div>
-      <div class="sz-l">${fmt(Math.round(mx*f))}</div>
-    </div>`;
+// ── Légende & stats ────────────────────────────────────────────────────
+function szLegend(mx){
+  document.getElementById('szRow').innerHTML=[0.25,.5,1].map(f=>{
+    const r=NR+Math.sqrt(f)*(MR-NR);
+    return`<div style="text-align:center"><div class="sz-c" style="width:${r*2}px;height:${r*2}px;margin:0 auto"></div><div class="sz-l">${fmt(Math.round(mx*f))}</div></div>`;
   }).join('');
 }
-function top8() {
+function top8(){
   const s=[...DATA].filter(d=>gv(d)>0).sort((a,b)=>gv(b)-gv(a)).slice(0,8);
   const mx=gv(s[0])||1;
   document.getElementById('top8').innerHTML=s.map((d,i)=>{
     const col=EC[d.e],pct=Math.round(gv(d)/mx*100);
-    return `<div class="stat">
-      <div class="rk" style="background:${i<3?col:'#E8E0D0'};color:${i<3?'#fff':'#5C4A30'}">${i+1}</div>
-      <div style="flex:1;overflow:hidden">
-        <div class="sn" title="${d.c}">${d.c}</div>
-        <div style="height:3px;background:#E8E0D0;border-radius:2px;margin-top:2px">
-          <div style="height:100%;width:${pct}%;background:${col};border-radius:2px"></div>
-        </div>
-      </div>
-      <div class="sv">${fmt(gv(d))}</div>
-      <div class="sd" style="background:${col}"></div>
-    </div>`;
+    return`<div class="stat"><div class="rk" style="background:${i<3?col:'#E8E0D0'};color:${i<3?'#fff':'#5C4A30'}">${i+1}</div><div style="flex:1;overflow:hidden"><div class="sn" title="${d.c}">${d.c}</div><div style="height:3px;background:#E8E0D0;border-radius:2px;margin-top:2px"><div style="height:100%;width:${pct}%;background:${col};border-radius:2px"></div></div></div><div class="sv">${fmt(gv(d))}</div><div class="sd" style="background:${col}"></div></div>`;
   }).join('');
 }
-function chips() {
+function chips(){
   const t={CCSPN:0,CCVV:0,CCPF:0};
   DATA.forEach(d=>t[d.e]+=gv(d));
   const g=Object.values(t).reduce((a,b)=>a+b,0);
   document.getElementById('chips').innerHTML=
     [['CCSPN','Sarlat'],['CCVV','Vallée'],['CCPF','Fénelon']].map(([e,n])=>{
       const v=t[e],p=g?Math.round(v/g*100):0,col=EC[e];
-      return `<span class="chip" style="background:${col}22;color:${col};border:1px solid ${col}44">${n}: ${fmt(v)} (${p}%)</span>`;
+      return`<span class="chip" style="background:${col}22;color:${col};border:1px solid ${col}44">${n}: ${fmt(v)} (${p}%)</span>`;
     }).join('');
 }
 
-// ── Chargement GeoJSON client-side (contours depuis geo.api.gouv.fr) ─
-async function loadGeoJSON() {
-  const url = `https://geo.api.gouv.fr/communes?code=${INSEES}&geometry=contour&format=geojson&fields=code,nom`;
-  try {
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error('HTTP '+resp.status);
-    geojson = await resp.json();
+// ── Activation des toggles géo ────────────────────────────────────────
+function enableGeoToggles(){
+  ['togChoro','togComm','togEPCI'].forEach(id=>{
+    document.getElementById(id).disabled=false;
+  });
+  // Activer les limites EPCI + communes par défaut
+  document.getElementById('togComm').checked=true;
+  document.getElementById('togEPCI').checked=true;
+  drawComm(); drawEPCI();
+  document.getElementById('geoSt').textContent='✓ Contours chargés';
+  document.getElementById('geoSt').style.color='#9bbb59';
+}
 
-    // Activer les toggles qui dépendent du GeoJSON
-    ['togChoro','togCommunes','togEPCI'].forEach(id=>{
-      document.getElementById(id).disabled = false;
+// ── Chargement GeoJSON depuis le serveur (même origine) ───────────────
+async function loadGeoJSON(){
+  try{
+    const resp=await fetch('/api/geojson');
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    geojson=await resp.json();
+    // Enrichir byINSEE avec les données du GeoJSON
+    geojson.features.forEach(f=>{
+      const d=byINSEE[f.properties.code];
+      if(d) f.properties.e=d.e;  // ajouter le code EPCI court
     });
-    document.getElementById('geoStatus').textContent = '✓ Contours chargés';
-    document.getElementById('geoStatus').style.color = '#9bbb59';
-
-    // Activer choroplèthe + limites EPCI par défaut
-    document.getElementById('togEPCI').checked = true;
-    document.getElementById('togCommunes').checked = true;
-    redraw();
-  } catch(e) {
-    document.getElementById('geoStatus').textContent = '⚠ Contours non disponibles (hors ligne ?)';
-    console.warn('GeoJSON load failed:', e);
+    enableGeoToggles();
+  }catch(e){
+    document.getElementById('geoSt').textContent='⚠ Contours non disponibles';
+    document.getElementById('geoSt').style.color='#c0504d';
+    console.warn('GeoJSON:',e);
   }
 }
 
 // ── Init ──────────────────────────────────────────────────────────────
-drawCircles();                   // Affichage immédiat des cercles
-loadGeoJSON();                   // Contours en arrière-plan
+drawCircles();
+loadGeoJSON();
 </script>
 </body>
 </html>

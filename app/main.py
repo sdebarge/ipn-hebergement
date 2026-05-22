@@ -1,26 +1,75 @@
 """
 API REST — Offre en hébergement IPN
-Itinéraire du Périgord Noir · Dordogne (24)
+Intense Périgord Noir · Dordogne (24)
 """
-from fastapi import FastAPI, HTTPException, Query, Request
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from pathlib import Path
 from typing import Optional
+import httpx
+import json
 
 from .parser import load_all_data, get_summary
 from .models import Commune, EpciSummary
 from .config import DATA_DIR, EPCI_CODES
 from .geo import load_geojson_from_shapefile, find_shapefile
 
-GEO_DIR  = DATA_DIR / "geo"
+GEO_DIR   = DATA_DIR / "geo"
 STATIC_DIR = Path(__file__).parent.parent / "static"
+
+# ── Cache partagé ─────────────────────────────────────────────────────
+_cache: dict = {}
+
+
+async def _prefetch_geojson():
+    """Pré-charge les contours communaux depuis geo.api.gouv.fr au démarrage."""
+    try:
+        data   = _cache.get("communes") or load_all_data(DATA_DIR)
+        insees = ",".join(c["insee"] for c in data)
+        url    = (
+            f"https://geo.api.gouv.fr/communes"
+            f"?code={insees}&geometry=contour&format=geojson&fields=code,nom"
+        )
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(url)
+            resp.raise_for_status()
+            geo = resp.json()
+            _cache["geojson_raw"] = geo
+            print(f"✓ GeoJSON pré-chargé : {len(geo.get('features', []))} communes")
+    except Exception as e:
+        print(f"⚠ GeoJSON non disponible au démarrage : {e}")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Chargement des données + GeoJSON au démarrage
+    _cache["communes"] = load_all_data(DATA_DIR)
+    print(f"✓ {len(_cache['communes'])} communes chargées")
+
+    # Essayer le shapefile local d'abord
+    shp = find_shapefile(GEO_DIR)
+    if shp:
+        try:
+            insees = [c["insee"] for c in _cache["communes"]]
+            _cache["geojson_raw"] = load_geojson_from_shapefile(shp, insees)
+            print(f"✓ GeoJSON depuis shapefile local : {shp.name}")
+        except Exception as e:
+            print(f"⚠ Shapefile erreur : {e} — tentative API nationale")
+            await _prefetch_geojson()
+    else:
+        await _prefetch_geojson()
+
+    yield  # L'app tourne ici
+
 
 app = FastAPI(
     title="IPN — Hébergement touristique",
-    description="API de l'offre en hébergement de l'Itinéraire du Périgord Noir",
-    version="1.1.0",
+    description="Intense Périgord Noir · API offre hébergement",
+    version="1.2.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -33,8 +82,6 @@ app.add_middleware(
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-# ── Cache ─────────────────────────────────────────────────────────────
-_cache: dict = {}
 
 def get_data() -> list[dict]:
     if "communes" not in _cache:
@@ -55,16 +102,12 @@ def root():
 @app.get("/api/debug", include_in_schema=False)
 def debug():
     shp = find_shapefile(GEO_DIR)
-    try:
-        data = get_data()
-        data_ok = len(data)
-    except Exception as e:
-        data_ok = f"ERREUR : {e}"
+    geo = _cache.get("geojson_raw")
     return {
-        "communes_chargées": data_ok,
+        "communes_chargées": len(_cache.get("communes", [])),
+        "geojson_en_cache":  bool(geo),
+        "geojson_features":  len(geo.get("features", [])) if geo else 0,
         "shapefile_détecté": str(shp) if shp else None,
-        "geo_dir": str(GEO_DIR),
-        "geo_dir_existe": GEO_DIR.exists(),
     }
 
 
@@ -73,10 +116,10 @@ def debug():
 def communes(epci: Optional[str] = Query(None)):
     data = get_data()
     if epci:
-        epci_upper = epci.upper()
-        if epci_upper not in EPCI_CODES:
+        eu = epci.upper()
+        if eu not in EPCI_CODES:
             raise HTTPException(400, f"EPCI inconnu. Valeurs : {', '.join(EPCI_CODES)}")
-        data = [c for c in data if c["epci"] == epci_upper]
+        data = [c for c in data if c["epci"] == eu]
     return data
 
 
@@ -94,13 +137,12 @@ def summary():
     return get_summary(get_data())
 
 
-# ── Types d'hébergement ───────────────────────────────────────────────
+# ── Types ─────────────────────────────────────────────────────────────
 @app.get("/api/types")
 def types_hebergement(epci: Optional[str] = None):
     data = get_data()
     if epci:
         data = [c for c in data if c["epci"] == epci.upper()]
-
     mapping = {
         "hotels":                ["Hôtels", "Hôtels non classés"],
         "residences_tourisme":   ["RT classés", "RT non classés"],
@@ -118,25 +160,23 @@ def types_hebergement(epci: Optional[str] = None):
         "accueil_groupe":        ["Accu. grp", "Auberge collective"],
         "residences_secondaires":["Res. 2aires"],
     }
-
     result = {k: {"nb": 0, "lits": 0} for k in mapping}
     for c in data:
-        heb = c.get("hebergement", {})
         for key, types in mapping.items():
             for t in types:
-                if t in heb:
-                    result[key]["nb"]   += heb[t]["nb"]
-                    result[key]["lits"] += heb[t]["lits"]
+                if t in c.get("hebergement", {}):
+                    result[key]["nb"]   += c["hebergement"][t]["nb"]
+                    result[key]["lits"] += c["hebergement"][t]["lits"]
     return result
 
 
-# ── Top communes ──────────────────────────────────────────────────────
+# ── Top ───────────────────────────────────────────────────────────────
 @app.get("/api/top/{metric}")
 def top_communes(metric: str, n: int = Query(10, ge=1, le=56), epci: Optional[str] = None):
     VALID = {
-        "total_marchands", "total_classes", "lits_camping", "lits_hotels",
-        "lits_meublés", "lits_gdf", "lits_ch", "lits_prl",
-        "lits_vv", "lits_rt", "lits_res2aires",
+        "total_marchands","total_classes","lits_camping","lits_hotels",
+        "lits_meublés","lits_gdf","lits_ch","lits_prl",
+        "lits_vv","lits_rt","lits_res2aires",
     }
     if metric not in VALID:
         raise HTTPException(400, f"Indicateur invalide. Valeurs : {', '.join(sorted(VALID))}")
@@ -150,78 +190,59 @@ def top_communes(metric: str, n: int = Query(10, ge=1, le=56), epci: Optional[st
 @app.get("/api/geojson")
 def geojson():
     """
-    GeoJSON des communes IPN avec données hébergement embarquées.
-    Source : shapefile local dans data/geo/ (priorité) ou geo.api.gouv.fr.
+    GeoJSON des 56 communes IPN avec données hébergement embarquées.
+    Servi depuis le cache pré-chargé au démarrage.
     """
-    data    = get_data()
-    by_ins  = {c["insee"]: c for c in data}
-    insees  = list(by_ins.keys())
+    geo = _cache.get("geojson_raw")
 
-    # ── 1. Shapefile local ────────────────────────────────────────────
-    shp = find_shapefile(GEO_DIR)
-    geo = None
-    if shp:
-        try:
-            geo = load_geojson_from_shapefile(shp, insees)
-        except Exception:
-            geo = None  # geopandas/fiona absents → repli sur l'API nationale
-
-    if geo is None:
-        # ── 2. API nationale par département (fallback) ───────────────
-        # L'API ne supporte pas les codes multiples en query string ;
-        # on récupère toutes les communes du département 24 et on filtre.
-        import httpx
-        insee_set = set(insees)
-        url = (
-            "https://geo.api.gouv.fr/departements/24/communes"
-            "?geometry=contour&format=geojson&fields=code,nom"
+    if not geo:
+        raise HTTPException(
+            503,
+            "Contours non disponibles. "
+            "Placez un shapefile dans data/geo/ ou vérifiez la connexion réseau du serveur."
         )
-        try:
-            resp = httpx.get(url, timeout=20)
-            resp.raise_for_status()
-            raw = resp.json()
-            raw["features"] = [
-                f for f in raw.get("features", [])
-                if f["properties"].get("code") in insee_set
-            ]
-            geo = raw
-        except Exception as e:
-            raise HTTPException(
-                503,
-                f"Shapefile illisible et API nationale inaccessible : {e}"
-            )
 
-    # ── Injection des données hébergement ─────────────────────────────
+    by_ins = {c["insee"]: c for c in get_data()}
+
+    # Injection des données hébergement dans chaque feature
+    features_ipn = []
     for feature in geo.get("features", []):
         insee = feature["properties"].get("code")
-        c = by_ins.get(insee, {})
+        c = by_ins.get(insee)
+        if not c:
+            continue
         feature["properties"].update({
-            "epci":            c.get("epci", ""),
-            "epci_name":       c.get("epci_name", ""),
-            "commune":         c.get("commune", feature["properties"].get("nom", "")),
-            "total_marchands": c.get("total_marchands", 0),
-            "total_classes":   c.get("total_classes", 0),
-            "lits_camping":    c.get("lits_camping", 0),
-            "lits_hotels":     c.get("lits_hotels", 0),
-            "lits_meublés":    c.get("lits_meublés", 0),
-            "lits_gdf":        c.get("lits_gdf", 0),
-            "lits_ch":         c.get("lits_ch", 0),
-            "lits_prl":        c.get("lits_prl", 0),
-            "lits_vv":         c.get("lits_vv", 0),
-            "lits_rt":         c.get("lits_rt", 0),
-            "lits_res2aires":  c.get("lits_res2aires", 0),
-            "lits_plein_air":  c.get("lits_plein_air", 0),
-            "lits_labellisé":  c.get("lits_labellisé", 0),
+            "epci":           c.get("epci", ""),
+            "epci_name":      c.get("epci_name", ""),
+            "commune":        c.get("commune", ""),
+            "total_marchands":c.get("total_marchands", 0),
+            "total_classes":  c.get("total_classes", 0),
+            "lits_camping":   c.get("lits_camping", 0),
+            "lits_hotels":    c.get("lits_hotels", 0),
+            "lits_meublés":   c.get("lits_meublés", 0),
+            "lits_gdf":       c.get("lits_gdf", 0),
+            "lits_ch":        c.get("lits_ch", 0),
+            "lits_prl":       c.get("lits_prl", 0),
+            "lits_vv":        c.get("lits_vv", 0),
+            "lits_rt":        c.get("lits_rt", 0),
+            "lits_res2aires": c.get("lits_res2aires", 0),
+            "lits_plein_air": c.get("lits_plein_air", 0),
+            "lits_labellisé": c.get("lits_labellisé", 0),
         })
+        features_ipn.append(feature)
 
-    return JSONResponse(geo)
+    return JSONResponse({
+        "type": "FeatureCollection",
+        "features": features_ipn
+    })
 
 
-# ── Reload (local uniquement) ─────────────────────────────────────────
+# ── Reload ────────────────────────────────────────────────────────────
 @app.post("/api/reload")
-def reload_data(request: Request):
-    if request.client.host not in ("127.0.0.1", "::1"):
-        raise HTTPException(403, "Accès réservé à localhost")
-    _cache.clear()
-    data = get_data()
-    return {"status": "ok", "communes_chargées": len(data)}
+async def reload_data():
+    """Recharge données Excel + GeoJSON sans redémarrage."""
+    _cache.pop("communes", None)
+    _cache.pop("geojson_raw", None)
+    _cache["communes"] = load_all_data(DATA_DIR)
+    await _prefetch_geojson()
+    return {"status": "ok", "communes_chargées": len(_cache["communes"])}
