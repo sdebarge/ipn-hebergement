@@ -235,20 +235,20 @@ function drawComm(){
 function drawEPCI(){
   if(lEPCI){map.removeLayer(lEPCI);lEPCI=null;}
   if(!geojson||!document.getElementById('togEPCI').checked)return;
-  const layers=[];
-  ['CCSPN','CCVV','CCPF'].forEach(epci=>{
-    const feats=geojson.features.filter(f=>byINSEE[f.properties.code]?.e===epci);
-    if(!feats.length)return;
-    try{
-      let u=feats[0];
-      for(let i=1;i<feats.length;i++){try{u=turf.union(u,feats[i]);}catch(e){}}
-      layers.push(L.geoJSON(u,{
-        style:{fillColor:'transparent',fillOpacity:0,weight:2.8,color:EC[epci],opacity:.9,dashArray:'7 3'},
-        interactive:false
-      }));
-    }catch(e){console.warn('EPCI union',epci,e);}
-  });
-  lEPCI=L.layerGroup(layers).addTo(map);
+  try{
+    const fc={type:'FeatureCollection',features:geojson.features
+      .map(f=>({...f,properties:{...f.properties,_epci:byINSEE[f.properties.code]?.e||''}}))
+      .filter(f=>f.properties._epci)};
+    const dissolved=turf.dissolve(fc,{propertyName:'_epci'});
+    const layers=dissolved.features.map(f=>
+      L.geoJSON(f,{style:{
+        fillColor:'transparent',fillOpacity:0,
+        weight:2.8,color:EC[f.properties._epci]||'#888',
+        opacity:.9,dashArray:'7 3'
+      },interactive:false})
+    );
+    lEPCI=L.layerGroup(layers).addTo(map);
+  }catch(e){console.warn('EPCI dissolve:',e);}
 }
 
 // ── Redessine tout ────────────────────────────────────────────────────
