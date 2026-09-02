@@ -150,11 +150,11 @@ DATA.forEach(d=>{byINSEE[d.insee]=d; d.lb=(d.gdf||0)+(d.cle||0);});
 function fmt(n){return(n||0).toLocaleString('fr-FR')}
 function gv(d){return d[M]||0}
 
-// ── Tuiles ────────────────────────────────────────────────────────────
-const tL=L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-  {attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a> © <a href="https://carto.com">CARTO</a>',subdomains:'abcd',maxZoom:18});
-const tD=L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-  {attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:18});
+// ── Tuiles (Esri Gray Canvas : sans clé API, style neutre pour datavis) ─
+const tL=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+  {attribution:'Tiles © <a href="https://www.esri.com">Esri</a> — Esri, DeLorme, NAVTEQ',maxZoom:16});
+const tD=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+  {attribution:'Tiles © <a href="https://www.esri.com">Esri</a> — Esri, HERE, Garmin, © OpenStreetMap',maxZoom:16});
 
 const map=L.map('map',{center:[44.917,1.166],zoom:11,layers:[tL]});
 
